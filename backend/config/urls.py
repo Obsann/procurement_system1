@@ -1,22 +1,21 @@
-"""
-URL configuration for config project.
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/4.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/auth/', include('apps.accounts.urls')),
+    path('api/users/', include('apps.accounts.user_urls')),
+    path('api/organizations/', include('apps.organizations.urls')),
+    path('api/requisitions/', include('apps.procurement.urls')),
+    path('api/suppliers/', include('apps.suppliers.urls')),
+    path('api/rfqs/', include('apps.rfq.urls')),
+    path('api/bids/', include('apps.bids.urls')),
+    path('api/purchase-orders/', include('apps.orders.urls')),
+    path('api/approvals/', include('apps.approvals.urls')),
+    path('api/financial-reviews/', include('apps.financial_reviews.urls')),
+    path('api/goods-receipts/', include('apps.receiving.urls')),
+    path('api/audit-logs/', include('apps.auditing.urls')),
+    path('api/notifications/', include('apps.notifications.urls')),
+
 ]

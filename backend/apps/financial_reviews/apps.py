@@ -3,4 +3,4 @@ from django.apps import AppConfig
 
 class FinancialReviewsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'financial_reviews'
+    name = 'apps.financial_reviews'

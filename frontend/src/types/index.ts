@@ -7,15 +7,14 @@ export interface User {
   locationId?: string;
 }
 
-export enum Role {
-  ADMIN = 'ADMIN',
-  REQUESTER = 'REQUESTER',
-  DEPARTMENT_HEAD = 'DEPARTMENT_HEAD',
-  PROCUREMENT_OFFICER = 'PROCUREMENT_OFFICER',
-  PROCUREMENT_MANAGER = 'PROCUREMENT_MANAGER',
-  FINANCE = 'FINANCE',
-  RECEIVER = 'RECEIVER',
-}
+export type Role = 
+  | 'ADMIN' 
+  | 'REQUESTER' 
+  | 'DEPARTMENT_HEAD' 
+  | 'PROCUREMENT_OFFICER' 
+  | 'PROCUREMENT_MANAGER' 
+  | 'FINANCE' 
+  | 'RECEIVER';
 
 export interface Permission {
   id: string;
@@ -57,15 +56,14 @@ export interface PurchaseRequisition {
   attachments: PurchaseRequisitionAttachment[];
 }
 
-export enum PRStatus {
-  DRAFT = 'DRAFT',
-  SUBMITTED = 'SUBMITTED',
-  APPROVED = 'APPROVED',
-  RETURNED = 'RETURNED',
-  REJECTED = 'REJECTED',
-  PROCUREMENT_PROCESSING = 'PROCUREMENT_PROCESSING',
-  PO_CREATED = 'PO_CREATED',
-}
+export type PRStatus = 
+  | 'DRAFT' 
+  | 'SUBMITTED' 
+  | 'APPROVED' 
+  | 'RETURNED' 
+  | 'REJECTED' 
+  | 'PROCUREMENT_PROCESSING' 
+  | 'PO_CREATED';
 
 export interface PurchaseRequisitionLine {
   id: string;
@@ -163,13 +161,12 @@ export interface PurchaseOrder {
   lines: PurchaseOrderLine[];
 }
 
-export enum POStatus {
-  DRAFT = 'DRAFT',
-  FINANCIAL_REVIEW = 'FINANCIAL_REVIEW',
-  PO_APPROVED = 'PO_APPROVED',
-  RETURNED = 'RETURNED',
-  REJECTED = 'REJECTED',
-}
+export type POStatus = 
+  | 'DRAFT' 
+  | 'FINANCIAL_REVIEW' 
+  | 'PO_APPROVED' 
+  | 'RETURNED' 
+  | 'REJECTED';
 
 export interface PurchaseOrderLine {
   id: string;

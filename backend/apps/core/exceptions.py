@@ -2,6 +2,11 @@ from rest_framework.views import exception_handler
 from rest_framework.response import Response
 from rest_framework import status
 
+# Add this custom exception class
+class InvalidTransitionError(Exception):
+    """Raised when a workflow state transition is not allowed."""
+    pass
+    
 def custom_exception_handler(exc, context):
     response = exception_handler(exc, context)
 

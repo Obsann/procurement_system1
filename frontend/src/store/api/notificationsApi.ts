@@ -1,5 +1,5 @@
 import { baseApi } from './baseApi';
-import { Notification, PaginatedResponse } from '../../types';
+import { type Notification, type PaginatedResponse } from '../../types';
 
 export const notificationsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({

@@ -1,11 +1,9 @@
-
 import uuid
 from django.db import models
 
-class BaseModel(models.Model):
+class TimeStampedModel(models.Model):
     """
     Abstract base model for all PMP models.
-    Provides UUID primary key and standard timestamp fields.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -18,4 +16,3 @@ class BaseModel(models.Model):
     @property
     def is_deleted(self):
         return self.deleted_at is not None
-

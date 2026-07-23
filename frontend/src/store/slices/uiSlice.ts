@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit'; // <--- Add 'type' here
 
 interface UiState {
   sidebarCollapsed: boolean;

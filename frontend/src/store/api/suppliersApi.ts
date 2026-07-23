@@ -1,45 +1,40 @@
 import { baseApi } from './baseApi';
-import { Supplier, PaginatedResponse } from '../../types';
+
+// Match the shape of Obsan's PaginatedResponse
+interface PaginatedResponse<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
+
+export interface Supplier {
+  id: string;
+  supplier_code: string;
+  legal_name: string;
+  tax_id?: string;
+  status: string;
+  city?: string;
+  country?: string;
+}
 
 export const suppliersApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getSuppliers: builder.query<PaginatedResponse<Supplier>, Record<string, any>>({
-      query: (params) => ({
-        url: '/suppliers',
-        method: 'GET',
-        params,
-      }),
-      providesTags: ['Supplier'],
-    }),
-    getSupplierById: builder.query<Supplier, string>({
-      query: (id) => ({
-        url: `/suppliers/${id}`,
-        method: 'GET',
-      }),
-      providesTags: (_result, _error, id) => [{ type: 'Supplier', id }],
+    // Use PaginatedResponse<Supplier> as the return type
+    // To this:
+    getSuppliers: builder.query<PaginatedResponse<Supplier>, void>({
+      query: () => {
+        return { url: '/suppliers/' };
+      },
     }),
     createSupplier: builder.mutation<Supplier, Partial<Supplier>>({
-      query: (body) => ({
-        url: '/suppliers',
+      query: (newSupplier) => ({
+        url: '/suppliers/',
         method: 'POST',
-        data: body,
+        body: newSupplier,
       }),
-      invalidatesTags: ['Supplier'],
-    }),
-    updateSupplier: builder.mutation<Supplier, { id: string; data: Partial<Supplier> }>({
-      query: ({ id, data }) => ({
-        url: `/suppliers/${id}`,
-        method: 'PUT',
-        data,
-      }),
-      invalidatesTags: (_result, _error, { id }) => [{ type: 'Supplier', id }, 'Supplier'],
     }),
   }),
 });
 
-export const {
-  useGetSuppliersQuery,
-  useGetSupplierByIdQuery,
-  useCreateSupplierMutation,
-  useUpdateSupplierMutation,
-} = suppliersApi;
+export const { useGetSuppliersQuery, useCreateSupplierMutation } = suppliersApi;

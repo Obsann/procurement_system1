@@ -1,3 +1,4 @@
+
 import uuid
 from django.db import models
 from apps.core.models import TimeStampedModel
@@ -16,3 +17,4 @@ class Notification(TimeStampedModel):
 
     def __str__(self):
         return f"Notification to {self.recipient.email}: {self.title}"
+

@@ -1,3 +1,4 @@
+
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -23,3 +24,4 @@ class NotificationViewSet(viewsets.ModelViewSet):
     def mark_all_read(self, request):
         self.get_queryset().update(is_read=True)
         return Response({'status': 'all marked as read'})
+

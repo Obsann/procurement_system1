@@ -1,4 +1,5 @@
 from django.db import models
+
 from apps.core.models import TimeStampedModel
 from apps.core.utils import generate_supplier_code
 
@@ -36,3 +37,4 @@ class SupplierContact(TimeStampedModel):
 
     def __str__(self):
         return f"{self.name} - {self.supplier.legal_name}"
+

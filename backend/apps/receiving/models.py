@@ -1,4 +1,5 @@
 from django.db import models
+
 from apps.core.models import TimeStampedModel
 from apps.core.utils import generate_grn_number
 
@@ -39,3 +40,4 @@ class GoodsReceiptLine(TimeStampedModel):
 
     def __str__(self):
         return f"Received {self.received_quantity}/{self.expected_quantity}"
+

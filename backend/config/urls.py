@@ -1,3 +1,4 @@
+
 from django.contrib import admin
 from django.urls import path, include
 
@@ -16,4 +17,5 @@ urlpatterns = [
     path('api/goods-receipts/', include('apps.receiving.urls')),
     path('api/audit-logs/', include('apps.auditing.urls')),
     path('api/notifications/', include('apps.notifications.urls')),
+
 ]

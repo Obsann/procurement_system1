@@ -17,3 +17,4 @@ class FinancialReview(TimeStampedModel):
 
     def __str__(self):
         return f"PO {self.purchase_order_id} - {self.decision}"
+

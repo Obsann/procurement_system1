@@ -1,3 +1,4 @@
+
 import uuid
 from django.db import models
 
@@ -17,3 +18,4 @@ class BaseModel(models.Model):
     @property
     def is_deleted(self):
         return self.deleted_at is not None
+

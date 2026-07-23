@@ -1,1 +1,1 @@
-# settings module
+# Settings package

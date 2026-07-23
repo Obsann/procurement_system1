@@ -1,55 +1,48 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
-from apps.accounts.managers import UserManager
+from apps.core.models import TimeStampedModel
+from .managers import CustomUserManager
 
-class Permission(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+class Role(TimeStampedModel):
+    ROLE_CHOICES = [
+        ('REQUESTER', 'Requester'),
+        ('BUDGET_HOLDER', 'Budget Holder'),
+        ('PROCUREMENT_OFFICER', 'Procurement Officer'),
+        ('FINANCIAL_REVIEWER', 'Financial Reviewer'),
+        ('WAREHOUSE_OFFICER', 'Warehouse Officer'),
+        ('ADMIN', 'Administrator'),
+    ]
+
+    name = models.CharField(max_length=50, choices=ROLE_CHOICES, unique=True)
     description = models.TextField(blank=True)
 
     def __str__(self):
-        return self.name
+        return self.get_name_display()
 
-class Role(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-    description = models.TextField(blank=True)
-
-    def __str__(self):
-        return self.name
-
-class RolePermission(models.Model):
-    role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name='permissions')
-    permission = models.ForeignKey(Permission, on_delete=models.CASCADE, related_name='roles')
-
-    class Meta:
-        unique_together = ('role', 'permission')
-
-    def __str__(self):
-        return f"{self.role.name} - {self.permission.name}"
-
-class User(AbstractBaseUser, PermissionsMixin):
+class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
     email = models.EmailField(unique=True)
-    first_name = models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
-    phone = models.CharField(max_length=20, blank=True, null=True)
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    phone = models.CharField(max_length=20, blank=True)
+    department = models.ForeignKey('organizations.Department', on_delete=models.SET_NULL, null=True, blank=True, related_name='users')
+    
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
-    department = models.ForeignKey('organizations.Department', on_delete=models.SET_NULL, null=True, blank=True)
 
-    objects = UserManager()
+    roles = models.ManyToManyField(Role, through='UserRole', related_name='users')
+
+    objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name']
 
     def __str__(self):
-        return self.email
+        return f"{self.first_name} {self.last_name} ({self.email})"
 
-class UserRole(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='roles')
-    role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name='users')
+class UserRole(TimeStampedModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    role = models.ForeignKey(Role, on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ('user', 'role')
-
-    def __str__(self):
-        return f"{self.user.email} - {self.role.name}"

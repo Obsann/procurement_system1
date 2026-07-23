@@ -1,1 +1,1 @@
-# apps/core module
+# Core package

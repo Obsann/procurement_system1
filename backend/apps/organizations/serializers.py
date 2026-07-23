@@ -1,20 +1,21 @@
 from rest_framework import serializers
 from .models import Organization, Department, Location
 
-class LocationSerializer(serializers.ModelSerializer):
+class OrganizationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Location
+        model = Organization
         fields = '__all__'
 
 class DepartmentSerializer(serializers.ModelSerializer):
+    organization_name = serializers.CharField(source='organization.name', read_only=True)
+
     class Meta:
         model = Department
         fields = '__all__'
 
-class OrganizationSerializer(serializers.ModelSerializer):
-    locations = LocationSerializer(many=True, read_only=True)
-    departments = DepartmentSerializer(many=True, read_only=True)
+class LocationSerializer(serializers.ModelSerializer):
+    organization_name = serializers.CharField(source='organization.name', read_only=True)
 
     class Meta:
-        model = Organization
+        model = Location
         fields = '__all__'

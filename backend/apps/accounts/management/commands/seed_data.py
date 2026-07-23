@@ -1,37 +1,54 @@
 from django.core.management.base import BaseCommand
-from apps.accounts.models import User, Role, Permission, UserRole, RolePermission
+from apps.accounts.models import Role, User, UserRole
 from apps.organizations.models import Organization, Department, Location
 
+
 class Command(BaseCommand):
-    help = 'Seed database with initial data'
+    help = 'Seeds initial roles, admin user, default organization, department, and location.'
 
     def handle(self, *args, **kwargs):
-        # Create permissions
-        perm_view, _ = Permission.objects.get_or_create(name='View All', description='Can view all')
-        perm_edit, _ = Permission.objects.get_or_create(name='Edit All', description='Can edit all')
+        roles_data = [
+            ('REQUESTER', 'Initiates procurement requests'),
+            ('BUDGET_HOLDER', 'Approves procurement requisitions and final POs'),
+            ('PROCUREMENT_OFFICER', 'Manages RFQs, supplier bids, and PO creation'),
+            ('FINANCIAL_REVIEWER', 'Reviews POs for financial compliance'),
+            ('WAREHOUSE_OFFICER', 'Records receipt of goods'),
+            ('ADMIN', 'Full system administration'),
+        ]
 
-        # Create roles
-        admin_role, _ = Role.objects.get_or_create(name='Admin', description='Administrator')
-        RolePermission.objects.get_or_create(role=admin_role, permission=perm_view)
-        RolePermission.objects.get_or_create(role=admin_role, permission=perm_edit)
+        roles = {}
+        for code, desc in roles_data:
+            role, created = Role.objects.get_or_create(name=code, defaults={'description': desc})
+            roles[code] = role
+            if created:
+                self.stdout.write(self.style.SUCCESS(f'Created role: {code}'))
 
-        # Create organization
-        org, _ = Organization.objects.get_or_create(name='Acme Corp', description='Acme Corporation')
-        Location.objects.get_or_create(organization=org, name='HQ', address='123 Main St')
-        dept, _ = Department.objects.get_or_create(organization=org, name='IT', description='Information Technology')
+        org, _ = Organization.objects.get_or_create(
+            code='HQ',
+            defaults={'name': 'Main Organization', 'country': 'Ethiopia'}
+        )
 
-        # Create admin user
-        if not User.objects.filter(email='admin@example.com').exists():
+        dept, _ = Department.objects.get_or_create(
+            code='IT',
+            defaults={'name': 'Information Technology', 'organization': org}
+        )
+
+        loc, _ = Location.objects.get_or_create(
+            code='ADDIS-HQ',
+            defaults={'name': 'Addis Ababa HQ', 'organization': org, 'city': 'Addis Ababa'}
+        )
+
+        admin_email = 'admin@pmp.com'
+        if not User.objects.filter(email=admin_email).exists():
             admin_user = User.objects.create_superuser(
-                email='admin@example.com',
-                password='admin',
-                first_name='Admin',
-                last_name='User',
+                email=admin_email,
+                password='adminpassword123',
+                first_name='System',
+                last_name='Admin',
                 department=dept
             )
-            UserRole.objects.get_or_create(user=admin_user, role=admin_role)
-            self.stdout.write(self.style.SUCCESS('Successfully created admin user.'))
+            admin_role = roles['ADMIN']
+            UserRole.objects.create(user=admin_user, role=admin_role)
+            self.stdout.write(self.style.SUCCESS(f'Created superuser: {admin_email} / adminpassword123'))
         else:
             self.stdout.write('Admin user already exists.')
-
-        self.stdout.write(self.style.SUCCESS('Successfully seeded database.'))

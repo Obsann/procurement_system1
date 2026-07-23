@@ -1,1 +1,1 @@
-# Init file
+# Accounts package

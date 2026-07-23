@@ -1,1 +1,1 @@
-# apps module
+# Core app

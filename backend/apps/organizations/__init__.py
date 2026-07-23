@@ -1,1 +1,1 @@
-# Init file
+# Organizations package

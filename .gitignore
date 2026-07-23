@@ -1,0 +1,28 @@
+# Create .gitignore
+cat << 'EOF' > .gitignore
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Python / Django
+__pycache__/
+*.pyc
+.env
+db.sqlite3
+media/
+venv/
+env/
+
+# Node / React
+node_modules/
+dist/
+build/
+.vite/
+
+# Logs
+*.log
+EOF

@@ -19,64 +19,47 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
-
-# Virtual Environment
+.venv/
 venv/
-.venv
 ENV/
-
-# Database
 db.sqlite3
 db.sqlite3-journal
 
-# Django stuff
-*.log
-local_settings.py
-
-# Coverage
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*,cover
-.hypothesis/
-
-# Node
+# Node / React
 node_modules/
-npm-debug.log
-yarn-error.log
-dist/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 .next/
+out/
+build/
+dist/
 
-# IDE
+# IDE & Editors
 .idea/
 .vscode/
 *.swp
 *.swo
 *~
 .project
-.settings/
+.pydevproject
 
-# OS
+# System Files
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
+ehthumbs.db
 
-# Environment variables
+# Environment Variables
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# Docker and volumes
-volumes/
-data/
-minio_data/
-postgres_data/
-redis_data/
+# Docker Data & Logs
+pgdata/
+redisdata/
+miniodata/
+*.log

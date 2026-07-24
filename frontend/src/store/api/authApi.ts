@@ -1,24 +1,23 @@
 import { baseApi } from './baseApi';
-import { type LoginRequest, type LoginResponse, type User } from '../../types';
+import { type LoginRequest, type User } from '../../types';
+
+export interface TokenPair {
+  access: string;
+  refresh: string;
+}
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    login: builder.mutation<LoginResponse, LoginRequest>({
+    login: builder.mutation<TokenPair, LoginRequest>({
       query: (credentials) => ({
-        url: '/auth/login',
+        url: '/auth/login/',
         method: 'POST',
         data: credentials,
       }),
     }),
-    logout: builder.mutation<void, void>({
-      query: () => ({
-        url: '/auth/logout',
-        method: 'POST',
-      }),
-    }),
     getProfile: builder.query<User, void>({
       query: () => ({
-        url: '/auth/profile',
+        url: '/auth/profile/',
         method: 'GET',
       }),
       providesTags: ['User'],
@@ -26,4 +25,4 @@ export const authApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useLoginMutation, useLogoutMutation, useGetProfileQuery } = authApi;
+export const { useLoginMutation, useGetProfileQuery } = authApi;

@@ -1,0 +1,4859 @@
+openapi: 3.0.3
+info:
+  title: ProcureSync API
+  version: 1.0.0
+  description: Procurement workflow and governance API.
+paths:
+  /api/approvals/:
+    get:
+      operationId: approvals_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - approvals
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedApprovalList'
+          description: ''
+  /api/approvals/{id}/:
+    get:
+      operationId: approvals_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this approval.
+        required: true
+      tags:
+      - approvals
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Approval'
+          description: ''
+  /api/approvals/approve/:
+    post:
+      operationId: approvals_approve_create
+      tags:
+      - approvals
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Approval'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Approval'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Approval'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Approval'
+          description: ''
+  /api/approvals/reject/:
+    post:
+      operationId: approvals_reject_create
+      tags:
+      - approvals
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Approval'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Approval'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Approval'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Approval'
+          description: ''
+  /api/approvals/return-entity/:
+    post:
+      operationId: approvals_return_entity_create
+      tags:
+      - approvals
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Approval'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Approval'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Approval'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Approval'
+          description: ''
+  /api/audit-logs/:
+    get:
+      operationId: audit_logs_list
+      parameters:
+      - in: query
+        name: action
+        schema:
+          type: string
+      - in: query
+        name: entity_id
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: entity_type
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: user
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - audit-logs
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAuditLogList'
+          description: ''
+  /api/audit-logs/{id}/:
+    get:
+      operationId: audit_logs_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this audit log.
+        required: true
+      tags:
+      - audit-logs
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditLog'
+          description: ''
+  /api/auth/login/:
+    post:
+      operationId: auth_login_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenObtainPair'
+          description: ''
+  /api/auth/profile/:
+    get:
+      operationId: auth_profile_retrieve
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/auth/refresh/:
+    post:
+      operationId: auth_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/bids/:
+    get:
+      operationId: bids_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - bids
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBidList'
+          description: ''
+    post:
+      operationId: bids_create
+      tags:
+      - bids
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Bid'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Bid'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Bid'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bid'
+          description: ''
+  /api/bids/{id}/:
+    get:
+      operationId: bids_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this bid.
+        required: true
+      tags:
+      - bids
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bid'
+          description: ''
+    put:
+      operationId: bids_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this bid.
+        required: true
+      tags:
+      - bids
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Bid'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Bid'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Bid'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bid'
+          description: ''
+    patch:
+      operationId: bids_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this bid.
+        required: true
+      tags:
+      - bids
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBid'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBid'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBid'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bid'
+          description: ''
+    delete:
+      operationId: bids_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this bid.
+        required: true
+      tags:
+      - bids
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/bids/{id}/select_winner/:
+    post:
+      operationId: bids_select_winner_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this bid.
+        required: true
+      tags:
+      - bids
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Bid'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Bid'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Bid'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bid'
+          description: ''
+  /api/financial-reviews/:
+    get:
+      operationId: financial_reviews_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - financial-reviews
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedFinancialReviewList'
+          description: ''
+    post:
+      operationId: financial_reviews_create
+      tags:
+      - financial-reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FinancialReview'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FinancialReview'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FinancialReview'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialReview'
+          description: ''
+  /api/financial-reviews/{id}/:
+    get:
+      operationId: financial_reviews_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this financial review.
+        required: true
+      tags:
+      - financial-reviews
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialReview'
+          description: ''
+    put:
+      operationId: financial_reviews_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this financial review.
+        required: true
+      tags:
+      - financial-reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FinancialReview'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FinancialReview'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FinancialReview'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialReview'
+          description: ''
+    patch:
+      operationId: financial_reviews_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this financial review.
+        required: true
+      tags:
+      - financial-reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedFinancialReview'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedFinancialReview'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedFinancialReview'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialReview'
+          description: ''
+    delete:
+      operationId: financial_reviews_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this financial review.
+        required: true
+      tags:
+      - financial-reviews
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/financial-reviews/review/:
+    post:
+      operationId: financial_reviews_review_create
+      tags:
+      - financial-reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FinancialReview'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FinancialReview'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FinancialReview'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialReview'
+          description: ''
+  /api/goods-receipts/:
+    get:
+      operationId: goods_receipts_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - goods-receipts
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedGoodsReceiptList'
+          description: ''
+    post:
+      operationId: goods_receipts_create
+      tags:
+      - goods-receipts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoodsReceipt'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GoodsReceipt'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GoodsReceipt'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoodsReceipt'
+          description: ''
+  /api/goods-receipts/{id}/:
+    get:
+      operationId: goods_receipts_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this goods receipt.
+        required: true
+      tags:
+      - goods-receipts
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoodsReceipt'
+          description: ''
+    put:
+      operationId: goods_receipts_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this goods receipt.
+        required: true
+      tags:
+      - goods-receipts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoodsReceipt'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GoodsReceipt'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GoodsReceipt'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoodsReceipt'
+          description: ''
+    patch:
+      operationId: goods_receipts_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this goods receipt.
+        required: true
+      tags:
+      - goods-receipts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedGoodsReceipt'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedGoodsReceipt'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedGoodsReceipt'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoodsReceipt'
+          description: ''
+    delete:
+      operationId: goods_receipts_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this goods receipt.
+        required: true
+      tags:
+      - goods-receipts
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/notifications/:
+    get:
+      operationId: notifications_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNotificationList'
+          description: ''
+    post:
+      operationId: notifications_create
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Notification'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/notifications/{id}/:
+    get:
+      operationId: notifications_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this notification.
+        required: true
+      tags:
+      - notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+    put:
+      operationId: notifications_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this notification.
+        required: true
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Notification'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+    patch:
+      operationId: notifications_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this notification.
+        required: true
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedNotification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedNotification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedNotification'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+    delete:
+      operationId: notifications_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this notification.
+        required: true
+      tags:
+      - notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/notifications/{id}/mark-read/:
+    post:
+      operationId: notifications_mark_read_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this notification.
+        required: true
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Notification'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/notifications/mark-all-read/:
+    post:
+      operationId: notifications_mark_all_read_create
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Notification'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/organizations/departments/:
+    get:
+      operationId: organizations_departments_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - organizations
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDepartmentList'
+          description: ''
+    post:
+      operationId: organizations_departments_create
+      tags:
+      - organizations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Department'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Department'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Department'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Department'
+          description: ''
+  /api/organizations/departments/{id}/:
+    get:
+      operationId: organizations_departments_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this department.
+        required: true
+      tags:
+      - organizations
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Department'
+          description: ''
+    put:
+      operationId: organizations_departments_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this department.
+        required: true
+      tags:
+      - organizations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Department'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Department'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Department'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Department'
+          description: ''
+    patch:
+      operationId: organizations_departments_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this department.
+        required: true
+      tags:
+      - organizations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedDepartment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedDepartment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedDepartment'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Department'
+          description: ''
+    delete:
+      operationId: organizations_departments_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this department.
+        required: true
+      tags:
+      - organizations
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/organizations/locations/:
+    get:
+      operationId: organizations_locations_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - organizations
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLocationList'
+          description: ''
+    post:
+      operationId: organizations_locations_create
+      tags:
+      - organizations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Location'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Location'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Location'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+          description: ''
+  /api/organizations/locations/{id}/:
+    get:
+      operationId: organizations_locations_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this location.
+        required: true
+      tags:
+      - organizations
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+          description: ''
+    put:
+      operationId: organizations_locations_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this location.
+        required: true
+      tags:
+      - organizations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Location'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Location'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Location'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+          description: ''
+    patch:
+      operationId: organizations_locations_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this location.
+        required: true
+      tags:
+      - organizations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedLocation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedLocation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedLocation'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+          description: ''
+    delete:
+      operationId: organizations_locations_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this location.
+        required: true
+      tags:
+      - organizations
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/organizations/organizations/:
+    get:
+      operationId: organizations_organizations_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - organizations
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOrganizationList'
+          description: ''
+    post:
+      operationId: organizations_organizations_create
+      tags:
+      - organizations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Organization'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Organization'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Organization'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+          description: ''
+  /api/organizations/organizations/{id}/:
+    get:
+      operationId: organizations_organizations_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this organization.
+        required: true
+      tags:
+      - organizations
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+          description: ''
+    put:
+      operationId: organizations_organizations_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this organization.
+        required: true
+      tags:
+      - organizations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Organization'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Organization'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Organization'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+          description: ''
+    patch:
+      operationId: organizations_organizations_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this organization.
+        required: true
+      tags:
+      - organizations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedOrganization'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedOrganization'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedOrganization'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+          description: ''
+    delete:
+      operationId: organizations_organizations_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this organization.
+        required: true
+      tags:
+      - organizations
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/purchase-orders/:
+    get:
+      operationId: purchase_orders_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: purchase_requisition
+        schema:
+          type: string
+          format: uuid
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - FINAL_APPROVAL
+          - FINANCIAL_APPROVED
+          - FINANCIAL_REVIEW
+          - GOODS_RECEIVED
+          - PO_APPROVED
+          - PO_CREATED
+          - REJECTED
+        description: |-
+          * `PO_CREATED` - PO Created
+          * `FINANCIAL_REVIEW` - Financial Review
+          * `FINANCIAL_APPROVED` - Financial Approved
+          * `FINAL_APPROVAL` - Final Approval
+          * `PO_APPROVED` - PO Approved
+          * `REJECTED` - Rejected
+          * `GOODS_RECEIVED` - Goods Received
+      - in: query
+        name: supplier
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - purchase-orders
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPurchaseOrderList'
+          description: ''
+    post:
+      operationId: purchase_orders_create
+      tags:
+      - purchase-orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrder'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrder'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrder'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrder'
+          description: ''
+  /api/purchase-orders/{id}/:
+    get:
+      operationId: purchase_orders_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this purchase order.
+        required: true
+      tags:
+      - purchase-orders
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrder'
+          description: ''
+    put:
+      operationId: purchase_orders_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this purchase order.
+        required: true
+      tags:
+      - purchase-orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrder'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrder'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrder'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrder'
+          description: ''
+    patch:
+      operationId: purchase_orders_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this purchase order.
+        required: true
+      tags:
+      - purchase-orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPurchaseOrder'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPurchaseOrder'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPurchaseOrder'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrder'
+          description: ''
+    delete:
+      operationId: purchase_orders_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this purchase order.
+        required: true
+      tags:
+      - purchase-orders
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/purchase-orders/{id}/submit-for-review/:
+    post:
+      operationId: purchase_orders_submit_for_review_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this purchase order.
+        required: true
+      tags:
+      - purchase-orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrder'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrder'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrder'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrder'
+          description: ''
+  /api/purchase-orders/generate-from-bid/:
+    post:
+      operationId: purchase_orders_generate_from_bid_create
+      description: Generate a PO from a winning bid.
+      tags:
+      - purchase-orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrder'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrder'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrder'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrder'
+          description: ''
+  /api/requisitions/:
+    get:
+      operationId: requisitions_list
+      parameters:
+      - in: query
+        name: department
+        schema:
+          type: string
+          format: uuid
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - APPROVED
+          - DRAFT
+          - PROCUREMENT_PROCESSING
+          - REJECTED
+          - RETURNED
+          - SUBMITTED
+        description: |-
+          * `DRAFT` - Draft
+          * `SUBMITTED` - Submitted
+          * `APPROVED` - Approved
+          * `RETURNED` - Returned
+          * `REJECTED` - Rejected
+          * `PROCUREMENT_PROCESSING` - Procurement Processing
+      tags:
+      - requisitions
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPurchaseRequisitionList'
+          description: ''
+    post:
+      operationId: requisitions_create
+      tags:
+      - requisitions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseRequisition'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PurchaseRequisition'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PurchaseRequisition'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseRequisition'
+          description: ''
+  /api/requisitions/{id}/:
+    get:
+      operationId: requisitions_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this purchase requisition.
+        required: true
+      tags:
+      - requisitions
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseRequisition'
+          description: ''
+    put:
+      operationId: requisitions_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this purchase requisition.
+        required: true
+      tags:
+      - requisitions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseRequisition'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PurchaseRequisition'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PurchaseRequisition'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseRequisition'
+          description: ''
+    patch:
+      operationId: requisitions_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this purchase requisition.
+        required: true
+      tags:
+      - requisitions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPurchaseRequisition'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPurchaseRequisition'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPurchaseRequisition'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseRequisition'
+          description: ''
+    delete:
+      operationId: requisitions_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this purchase requisition.
+        required: true
+      tags:
+      - requisitions
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/requisitions/{id}/submit/:
+    post:
+      operationId: requisitions_submit_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this purchase requisition.
+        required: true
+      tags:
+      - requisitions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseRequisition'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PurchaseRequisition'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PurchaseRequisition'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseRequisition'
+          description: ''
+  /api/rfqs/:
+    get:
+      operationId: rfqs_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - rfqs
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRFQList'
+          description: ''
+    post:
+      operationId: rfqs_create
+      tags:
+      - rfqs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RFQ'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RFQ'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RFQ'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RFQ'
+          description: ''
+  /api/rfqs/{id}/:
+    get:
+      operationId: rfqs_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this rfq.
+        required: true
+      tags:
+      - rfqs
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RFQ'
+          description: ''
+    put:
+      operationId: rfqs_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this rfq.
+        required: true
+      tags:
+      - rfqs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RFQ'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RFQ'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RFQ'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RFQ'
+          description: ''
+    patch:
+      operationId: rfqs_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this rfq.
+        required: true
+      tags:
+      - rfqs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRFQ'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRFQ'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRFQ'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RFQ'
+          description: ''
+    delete:
+      operationId: rfqs_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this rfq.
+        required: true
+      tags:
+      - rfqs
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/rfqs/{id}/close/:
+    post:
+      operationId: rfqs_close_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this rfq.
+        required: true
+      tags:
+      - rfqs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RFQ'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RFQ'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RFQ'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RFQ'
+          description: ''
+  /api/rfqs/{id}/send/:
+    post:
+      operationId: rfqs_send_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this rfq.
+        required: true
+      tags:
+      - rfqs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RFQ'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RFQ'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RFQ'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RFQ'
+          description: ''
+  /api/suppliers/:
+    get:
+      operationId: suppliers_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - suppliers
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSupplierList'
+          description: ''
+    post:
+      operationId: suppliers_create
+      tags:
+      - suppliers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Supplier'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Supplier'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Supplier'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Supplier'
+          description: ''
+  /api/suppliers/{id}/:
+    get:
+      operationId: suppliers_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this supplier.
+        required: true
+      tags:
+      - suppliers
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Supplier'
+          description: ''
+    put:
+      operationId: suppliers_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this supplier.
+        required: true
+      tags:
+      - suppliers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Supplier'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Supplier'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Supplier'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Supplier'
+          description: ''
+    patch:
+      operationId: suppliers_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this supplier.
+        required: true
+      tags:
+      - suppliers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSupplier'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSupplier'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSupplier'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Supplier'
+          description: ''
+    delete:
+      operationId: suppliers_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this supplier.
+        required: true
+      tags:
+      - suppliers
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/users/:
+    get:
+      operationId: users_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserList'
+          description: ''
+    post:
+      operationId: users_create
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/users/{id}/:
+    get:
+      operationId: users_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this user.
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    put:
+      operationId: users_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this user.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: users_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this user.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    delete:
+      operationId: users_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this user.
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+components:
+  schemas:
+    ActionEnum:
+      enum:
+      - APPROVE
+      - REJECT
+      - RETURN
+      type: string
+      description: |-
+        * `APPROVE` - Approve
+        * `REJECT` - Reject
+        * `RETURN` - Return
+    Approval:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        entity_type:
+          $ref: '#/components/schemas/EntityTypeEnum'
+        entity_id:
+          type: string
+          format: uuid
+        approver:
+          type: string
+          format: uuid
+          readOnly: true
+        approver_name:
+          type: string
+          readOnly: true
+        role:
+          type: string
+          maxLength: 50
+        action:
+          $ref: '#/components/schemas/ActionEnum'
+        comment:
+          type: string
+        previous_status:
+          type: string
+          readOnly: true
+        new_status:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - action
+      - approver
+      - approver_name
+      - created_at
+      - entity_id
+      - entity_type
+      - id
+      - new_status
+      - previous_status
+      - role
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+          nullable: true
+        user_name:
+          type: string
+          readOnly: true
+        action:
+          type: string
+          maxLength: 100
+        entity_type:
+          type: string
+          maxLength: 50
+        entity_id:
+          type: string
+          format: uuid
+        old_status:
+          type: string
+          nullable: true
+          maxLength: 30
+        new_status:
+          type: string
+          nullable: true
+          maxLength: 30
+        comment:
+          type: string
+        ip_address:
+          type: string
+          nullable: true
+        timestamp:
+          type: string
+          format: date-time
+          readOnly: true
+        extra_data:
+          nullable: true
+      required:
+      - action
+      - entity_id
+      - entity_type
+      - id
+      - timestamp
+      - user_name
+    Bid:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        rfq:
+          type: string
+          format: uuid
+        supplier:
+          type: string
+          format: uuid
+        supplier_name:
+          type: string
+          readOnly: true
+        bid_date:
+          type: string
+          format: date
+        expiry_date:
+          type: string
+          format: date
+          nullable: true
+        lead_time_days:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+        freight_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        insurance_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        tax_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        grand_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        is_winner:
+          type: boolean
+          readOnly: true
+        notes:
+          type: string
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/BidLine'
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/BidAttachment'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - attachments
+      - bid_date
+      - created_at
+      - grand_total
+      - id
+      - is_winner
+      - rfq
+      - supplier
+      - supplier_name
+    BidAttachment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        file:
+          type: string
+          format: uri
+        file_name:
+          type: string
+          maxLength: 255
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - file
+      - file_name
+      - id
+    BidLine:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        quantity_offered:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        unit_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        total_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        notes:
+          type: string
+        bid:
+          type: string
+          format: uuid
+        rfq_line:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - bid
+      - created_at
+      - id
+      - quantity_offered
+      - total_price
+      - unit_price
+      - updated_at
+    DecisionEnum:
+      enum:
+      - APPROVED
+      - RETURNED
+      type: string
+      description: |-
+        * `APPROVED` - Approved
+        * `RETURNED` - Returned
+    Department:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        organization_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        name:
+          type: string
+          maxLength: 100
+        code:
+          type: string
+          maxLength: 20
+        is_active:
+          type: boolean
+        organization:
+          type: string
+          format: uuid
+      required:
+      - code
+      - created_at
+      - id
+      - name
+      - organization
+      - organization_name
+      - updated_at
+    EntityTypeEnum:
+      enum:
+      - PR
+      - PO
+      type: string
+      description: |-
+        * `PR` - Purchase Requisition
+        * `PO` - Purchase Order
+    FinancialReview:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        purchase_order:
+          type: string
+          format: uuid
+        po_number:
+          type: string
+          readOnly: true
+        reviewer:
+          type: string
+          format: uuid
+          readOnly: true
+        reviewer_name:
+          type: string
+          readOnly: true
+        review_date:
+          type: string
+          format: date-time
+          readOnly: true
+        decision:
+          $ref: '#/components/schemas/DecisionEnum'
+        comments:
+          type: string
+        previous_status:
+          type: string
+          readOnly: true
+        new_status:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - decision
+      - id
+      - new_status
+      - po_number
+      - previous_status
+      - purchase_order
+      - review_date
+      - reviewer
+      - reviewer_name
+    GoodsReceipt:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        purchase_order:
+          type: string
+          format: uuid
+        po_number:
+          type: string
+          readOnly: true
+        grn_number:
+          type: string
+          readOnly: true
+        received_by:
+          type: string
+          format: uuid
+          readOnly: true
+        received_by_name:
+          type: string
+          readOnly: true
+        received_date:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/GoodsReceiptStatusEnum'
+        notes:
+          type: string
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/GoodsReceiptLine'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - grn_number
+      - id
+      - po_number
+      - purchase_order
+      - received_by
+      - received_by_name
+      - received_date
+    GoodsReceiptLine:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        expected_quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        received_quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        notes:
+          type: string
+        goods_receipt:
+          type: string
+          format: uuid
+          readOnly: true
+        po_line:
+          type: string
+          format: uuid
+      required:
+      - created_at
+      - expected_quantity
+      - goods_receipt
+      - id
+      - po_line
+      - received_quantity
+      - updated_at
+    GoodsReceiptStatusEnum:
+      enum:
+      - PARTIAL
+      - COMPLETE
+      type: string
+      description: |-
+        * `PARTIAL` - Partial
+        * `COMPLETE` - Complete
+    Location:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        organization_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        name:
+          type: string
+          maxLength: 100
+        code:
+          type: string
+          maxLength: 20
+        address:
+          type: string
+        city:
+          type: string
+          maxLength: 50
+        country:
+          type: string
+          maxLength: 50
+        is_active:
+          type: boolean
+        organization:
+          type: string
+          format: uuid
+      required:
+      - code
+      - created_at
+      - id
+      - name
+      - organization
+      - organization_name
+      - updated_at
+    NameEnum:
+      enum:
+      - REQUESTER
+      - BUDGET_HOLDER
+      - PROCUREMENT_OFFICER
+      - FINANCIAL_REVIEWER
+      - WAREHOUSE_OFFICER
+      - ADMIN
+      - SYSTEM_ADMINISTRATOR
+      type: string
+      description: |-
+        * `REQUESTER` - Requester
+        * `BUDGET_HOLDER` - Budget Holder
+        * `PROCUREMENT_OFFICER` - Procurement Officer
+        * `FINANCIAL_REVIEWER` - Financial Reviewer
+        * `WAREHOUSE_OFFICER` - Warehouse Officer
+        * `ADMIN` - Administrator
+        * `SYSTEM_ADMINISTRATOR` - System Administrator
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        recipient:
+          type: string
+          format: uuid
+        title:
+          type: string
+          maxLength: 200
+        message:
+          type: string
+        entity_type:
+          type: string
+          nullable: true
+          maxLength: 50
+        entity_id:
+          type: string
+          format: uuid
+          nullable: true
+        is_read:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - message
+      - recipient
+      - title
+    Organization:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        name:
+          type: string
+          maxLength: 100
+        code:
+          type: string
+          maxLength: 20
+        address:
+          type: string
+        phone:
+          type: string
+          maxLength: 20
+        email:
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        is_active:
+          type: boolean
+      required:
+      - code
+      - created_at
+      - id
+      - name
+      - updated_at
+    PaginatedApprovalList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Approval'
+    PaginatedAuditLogList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditLog'
+    PaginatedBidList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Bid'
+    PaginatedDepartmentList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Department'
+    PaginatedFinancialReviewList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/FinancialReview'
+    PaginatedGoodsReceiptList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/GoodsReceipt'
+    PaginatedLocationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Location'
+    PaginatedNotificationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+    PaginatedOrganizationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Organization'
+    PaginatedPurchaseOrderList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseOrder'
+    PaginatedPurchaseRequisitionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseRequisition'
+    PaginatedRFQList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/RFQ'
+    PaginatedSupplierList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Supplier'
+    PaginatedUserList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+    PatchedBid:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        rfq:
+          type: string
+          format: uuid
+        supplier:
+          type: string
+          format: uuid
+        supplier_name:
+          type: string
+          readOnly: true
+        bid_date:
+          type: string
+          format: date
+        expiry_date:
+          type: string
+          format: date
+          nullable: true
+        lead_time_days:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+        freight_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        insurance_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        tax_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        grand_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        is_winner:
+          type: boolean
+          readOnly: true
+        notes:
+          type: string
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/BidLine'
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/BidAttachment'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedDepartment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        organization_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        name:
+          type: string
+          maxLength: 100
+        code:
+          type: string
+          maxLength: 20
+        is_active:
+          type: boolean
+        organization:
+          type: string
+          format: uuid
+    PatchedFinancialReview:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        purchase_order:
+          type: string
+          format: uuid
+        po_number:
+          type: string
+          readOnly: true
+        reviewer:
+          type: string
+          format: uuid
+          readOnly: true
+        reviewer_name:
+          type: string
+          readOnly: true
+        review_date:
+          type: string
+          format: date-time
+          readOnly: true
+        decision:
+          $ref: '#/components/schemas/DecisionEnum'
+        comments:
+          type: string
+        previous_status:
+          type: string
+          readOnly: true
+        new_status:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedGoodsReceipt:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        purchase_order:
+          type: string
+          format: uuid
+        po_number:
+          type: string
+          readOnly: true
+        grn_number:
+          type: string
+          readOnly: true
+        received_by:
+          type: string
+          format: uuid
+          readOnly: true
+        received_by_name:
+          type: string
+          readOnly: true
+        received_date:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/GoodsReceiptStatusEnum'
+        notes:
+          type: string
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/GoodsReceiptLine'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedLocation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        organization_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        name:
+          type: string
+          maxLength: 100
+        code:
+          type: string
+          maxLength: 20
+        address:
+          type: string
+        city:
+          type: string
+          maxLength: 50
+        country:
+          type: string
+          maxLength: 50
+        is_active:
+          type: boolean
+        organization:
+          type: string
+          format: uuid
+    PatchedNotification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        recipient:
+          type: string
+          format: uuid
+        title:
+          type: string
+          maxLength: 200
+        message:
+          type: string
+        entity_type:
+          type: string
+          nullable: true
+          maxLength: 50
+        entity_id:
+          type: string
+          format: uuid
+          nullable: true
+        is_read:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedOrganization:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        name:
+          type: string
+          maxLength: 100
+        code:
+          type: string
+          maxLength: 20
+        address:
+          type: string
+        phone:
+          type: string
+          maxLength: 20
+        email:
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        is_active:
+          type: boolean
+    PatchedPurchaseOrder:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        po_number:
+          type: string
+          readOnly: true
+        purchase_requisition:
+          type: string
+          format: uuid
+        pr_number:
+          type: string
+          readOnly: true
+        rfq:
+          type: string
+          format: uuid
+          nullable: true
+        winning_bid:
+          type: string
+          format: uuid
+          nullable: true
+        supplier:
+          type: string
+          format: uuid
+        supplier_name:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/PurchaseOrderStatusEnum'
+          readOnly: true
+        currency:
+          type: string
+          maxLength: 10
+        subtotal:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        freight_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        insurance_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        tax_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        total_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        payment_terms:
+          type: string
+          maxLength: 100
+        delivery_method:
+          type: string
+          maxLength: 100
+        delivery_location:
+          type: string
+          format: uuid
+          nullable: true
+        notes:
+          type: string
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseOrderLine'
+          readOnly: true
+        submitted_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        approved_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedPurchaseRequisition:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        pr_number:
+          type: string
+          readOnly: true
+        requester:
+          type: string
+          format: uuid
+          readOnly: true
+        requester_name:
+          type: string
+          readOnly: true
+        department:
+          type: string
+          format: uuid
+        department_name:
+          type: string
+          readOnly: true
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        delivery_location:
+          type: string
+          format: uuid
+          nullable: true
+        required_delivery_date:
+          type: string
+          format: date
+          nullable: true
+        currency:
+          type: string
+          maxLength: 10
+        status:
+          allOf:
+          - $ref: '#/components/schemas/PurchaseRequisitionStatusEnum'
+          readOnly: true
+        total_estimated_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseRequisitionLine'
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseRequisitionAttachment'
+          readOnly: true
+        submitted_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        approved_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedRFQ:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        rfq_number:
+          type: string
+          readOnly: true
+        purchase_requisition:
+          type: string
+          format: uuid
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        submission_deadline:
+          type: string
+          format: date
+        instructions:
+          type: string
+        status:
+          allOf:
+          - $ref: '#/components/schemas/RFQStatusEnum'
+          readOnly: true
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/RFQLine'
+        invited_suppliers:
+          type: array
+          items:
+            $ref: '#/components/schemas/RFQSupplier'
+          readOnly: true
+        supplier_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          writeOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedSupplier:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupplierContact'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        supplier_code:
+          type: string
+          readOnly: true
+        legal_name:
+          type: string
+          maxLength: 150
+        display_name:
+          type: string
+          maxLength: 150
+        contact_person:
+          type: string
+          maxLength: 100
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        phone:
+          type: string
+          maxLength: 30
+        address:
+          type: string
+        city:
+          type: string
+          maxLength: 50
+        country:
+          type: string
+          maxLength: 50
+        tax_id:
+          type: string
+          maxLength: 50
+        status:
+          $ref: '#/components/schemas/SupplierStatusEnum'
+        categories:
+          type: string
+          description: Comma separated categories
+        notes:
+          type: string
+    PatchedUser:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 50
+        last_name:
+          type: string
+          maxLength: 50
+        phone:
+          type: string
+          maxLength: 20
+        department:
+          type: string
+          format: uuid
+          nullable: true
+        department_name:
+          type: string
+          readOnly: true
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
+          readOnly: true
+        is_active:
+          type: boolean
+        date_joined:
+          type: string
+          format: date-time
+          readOnly: true
+    PurchaseOrder:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        po_number:
+          type: string
+          readOnly: true
+        purchase_requisition:
+          type: string
+          format: uuid
+        pr_number:
+          type: string
+          readOnly: true
+        rfq:
+          type: string
+          format: uuid
+          nullable: true
+        winning_bid:
+          type: string
+          format: uuid
+          nullable: true
+        supplier:
+          type: string
+          format: uuid
+        supplier_name:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/PurchaseOrderStatusEnum'
+          readOnly: true
+        currency:
+          type: string
+          maxLength: 10
+        subtotal:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        freight_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        insurance_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        tax_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        total_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        payment_terms:
+          type: string
+          maxLength: 100
+        delivery_method:
+          type: string
+          maxLength: 100
+        delivery_location:
+          type: string
+          format: uuid
+          nullable: true
+        notes:
+          type: string
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseOrderLine'
+          readOnly: true
+        submitted_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        approved_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - approved_at
+      - created_at
+      - id
+      - lines
+      - po_number
+      - pr_number
+      - purchase_requisition
+      - status
+      - submitted_at
+      - supplier
+      - supplier_name
+    PurchaseOrderLine:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        item_name:
+          type: string
+          maxLength: 150
+        description:
+          type: string
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        unit_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        total_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        sort_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        purchase_order:
+          type: string
+          format: uuid
+      required:
+      - created_at
+      - id
+      - item_name
+      - purchase_order
+      - quantity
+      - total_price
+      - unit_price
+      - updated_at
+    PurchaseOrderStatusEnum:
+      enum:
+      - PO_CREATED
+      - FINANCIAL_REVIEW
+      - FINANCIAL_APPROVED
+      - FINAL_APPROVAL
+      - PO_APPROVED
+      - REJECTED
+      - GOODS_RECEIVED
+      type: string
+      description: |-
+        * `PO_CREATED` - PO Created
+        * `FINANCIAL_REVIEW` - Financial Review
+        * `FINANCIAL_APPROVED` - Financial Approved
+        * `FINAL_APPROVAL` - Final Approval
+        * `PO_APPROVED` - PO Approved
+        * `REJECTED` - Rejected
+        * `GOODS_RECEIVED` - Goods Received
+    PurchaseRequisition:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        pr_number:
+          type: string
+          readOnly: true
+        requester:
+          type: string
+          format: uuid
+          readOnly: true
+        requester_name:
+          type: string
+          readOnly: true
+        department:
+          type: string
+          format: uuid
+        department_name:
+          type: string
+          readOnly: true
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        delivery_location:
+          type: string
+          format: uuid
+          nullable: true
+        required_delivery_date:
+          type: string
+          format: date
+          nullable: true
+        currency:
+          type: string
+          maxLength: 10
+        status:
+          allOf:
+          - $ref: '#/components/schemas/PurchaseRequisitionStatusEnum'
+          readOnly: true
+        total_estimated_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseRequisitionLine'
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseRequisitionAttachment'
+          readOnly: true
+        submitted_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        approved_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - approved_at
+      - attachments
+      - created_at
+      - department
+      - department_name
+      - description
+      - id
+      - pr_number
+      - requester
+      - requester_name
+      - status
+      - submitted_at
+      - title
+      - total_estimated_amount
+    PurchaseRequisitionAttachment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        file:
+          type: string
+          format: uri
+        file_name:
+          type: string
+          maxLength: 255
+        file_size:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - file
+      - file_name
+      - file_size
+      - id
+    PurchaseRequisitionLine:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        item_name:
+          type: string
+          maxLength: 150
+        description:
+          type: string
+        category:
+          type: string
+          maxLength: 100
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        unit_of_measure:
+          type: string
+          maxLength: 30
+        estimated_unit_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        estimated_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        sort_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+      required:
+      - estimated_total
+      - estimated_unit_price
+      - id
+      - item_name
+      - quantity
+    PurchaseRequisitionStatusEnum:
+      enum:
+      - DRAFT
+      - SUBMITTED
+      - APPROVED
+      - RETURNED
+      - REJECTED
+      - PROCUREMENT_PROCESSING
+      type: string
+      description: |-
+        * `DRAFT` - Draft
+        * `SUBMITTED` - Submitted
+        * `APPROVED` - Approved
+        * `RETURNED` - Returned
+        * `REJECTED` - Rejected
+        * `PROCUREMENT_PROCESSING` - Procurement Processing
+    RFQ:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        rfq_number:
+          type: string
+          readOnly: true
+        purchase_requisition:
+          type: string
+          format: uuid
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        submission_deadline:
+          type: string
+          format: date
+        instructions:
+          type: string
+        status:
+          allOf:
+          - $ref: '#/components/schemas/RFQStatusEnum'
+          readOnly: true
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/RFQLine'
+        invited_suppliers:
+          type: array
+          items:
+            $ref: '#/components/schemas/RFQSupplier'
+          readOnly: true
+        supplier_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          writeOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - invited_suppliers
+      - purchase_requisition
+      - rfq_number
+      - status
+      - submission_deadline
+      - title
+    RFQLine:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        item_name:
+          type: string
+          maxLength: 150
+        description:
+          type: string
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        unit_of_measure:
+          type: string
+          maxLength: 30
+        sort_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        rfq:
+          type: string
+          format: uuid
+        pr_line:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - created_at
+      - id
+      - item_name
+      - quantity
+      - rfq
+      - updated_at
+    RFQStatusEnum:
+      enum:
+      - DRAFT
+      - SENT
+      - RESPONDED
+      - CLOSED
+      type: string
+      description: |-
+        * `DRAFT` - Draft
+        * `SENT` - Sent
+        * `RESPONDED` - Responded
+        * `CLOSED` - Closed
+    RFQSupplier:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        supplier:
+          type: string
+          format: uuid
+        supplier_name:
+          type: string
+          readOnly: true
+        invited_at:
+          type: string
+          format: date-time
+          readOnly: true
+        responded:
+          type: boolean
+      required:
+      - id
+      - invited_at
+      - supplier
+      - supplier_name
+    Role:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          $ref: '#/components/schemas/NameEnum'
+        description:
+          type: string
+      required:
+      - id
+      - name
+    Supplier:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupplierContact'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        supplier_code:
+          type: string
+          readOnly: true
+        legal_name:
+          type: string
+          maxLength: 150
+        display_name:
+          type: string
+          maxLength: 150
+        contact_person:
+          type: string
+          maxLength: 100
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        phone:
+          type: string
+          maxLength: 30
+        address:
+          type: string
+        city:
+          type: string
+          maxLength: 50
+        country:
+          type: string
+          maxLength: 50
+        tax_id:
+          type: string
+          maxLength: 50
+        status:
+          $ref: '#/components/schemas/SupplierStatusEnum'
+        categories:
+          type: string
+          description: Comma separated categories
+        notes:
+          type: string
+      required:
+      - contact_person
+      - contacts
+      - created_at
+      - email
+      - id
+      - legal_name
+      - phone
+      - supplier_code
+      - updated_at
+    SupplierContact:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        name:
+          type: string
+          maxLength: 100
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        phone:
+          type: string
+          maxLength: 30
+        position:
+          type: string
+          maxLength: 50
+        is_primary:
+          type: boolean
+        supplier:
+          type: string
+          format: uuid
+      required:
+      - created_at
+      - email
+      - id
+      - name
+      - supplier
+      - updated_at
+    SupplierStatusEnum:
+      enum:
+      - ACTIVE
+      - INACTIVE
+      - BLOCKED
+      type: string
+      description: |-
+        * `ACTIVE` - Active
+        * `INACTIVE` - Inactive
+        * `BLOCKED` - Blocked
+    TokenObtainPair:
+      type: object
+      properties:
+        email:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          readOnly: true
+      required:
+      - access
+      - email
+      - password
+      - refresh
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 50
+        last_name:
+          type: string
+          maxLength: 50
+        phone:
+          type: string
+          maxLength: 20
+        department:
+          type: string
+          format: uuid
+          nullable: true
+        department_name:
+          type: string
+          readOnly: true
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
+          readOnly: true
+        is_active:
+          type: boolean
+        date_joined:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - date_joined
+      - department_name
+      - email
+      - first_name
+      - id
+      - last_name
+      - roles
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

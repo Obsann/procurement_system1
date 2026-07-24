@@ -56,10 +56,9 @@ class ApprovalViewSet(viewsets.ReadOnlyModelViewSet):
         else:
             return Response({'error': 'Invalid entity_type. Use PR or PO.'}, status=400)
 
-        user_role = request.user.roles.first().name if request.user.roles.exists() else 'ADMIN'
         previous_status = entity.status
 
-        next_status = WorkflowEngine.transition(entity_type, entity, workflow_action, user_role)
+        next_status, user_role = WorkflowEngine.transition_for_user(entity_type, entity, workflow_action, request.user)
 
         # Record approval
         approval = Approval.objects.create(

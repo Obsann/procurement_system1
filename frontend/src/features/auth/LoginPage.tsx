@@ -52,6 +52,7 @@ export const LoginPage: React.FC = () => {
           <CardContent className="pt-4">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <Input
+                id="email"
                 label="Email"
                 type="email"
                 placeholder="name@company.com"
@@ -59,6 +60,7 @@ export const LoginPage: React.FC = () => {
                 error={errors.email?.message}
               />
               <Input
+                id="password"
                 label="Password"
                 type="password"
                 placeholder="••••••••"

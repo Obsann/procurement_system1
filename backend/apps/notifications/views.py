@@ -11,6 +11,8 @@ class NotificationViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Notification.objects.none()
         return Notification.objects.filter(recipient=self.request.user).order_by('-created_at')
 
     @action(detail=True, methods=['post'], url_path='mark-read')

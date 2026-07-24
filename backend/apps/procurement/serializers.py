@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework import serializers
 from .models import PurchaseRequisition, PurchaseRequisitionLine, PurchaseRequisitionAttachment
 
@@ -7,6 +8,11 @@ class PurchaseRequisitionLineSerializer(serializers.ModelSerializer):
     class Meta:
         model = PurchaseRequisitionLine
         fields = ['id', 'item_name', 'description', 'category', 'quantity', 'unit_of_measure', 'estimated_unit_price', 'estimated_total', 'sort_order']
+
+    def validate(self, attrs):
+        if attrs['quantity'] <= 0 or attrs['estimated_unit_price'] < 0:
+            raise serializers.ValidationError('Quantity must be positive and unit price cannot be negative.')
+        return attrs
 
 class PurchaseRequisitionAttachmentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -32,19 +38,22 @@ class PurchaseRequisitionSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         lines_data = validated_data.pop('lines', [])
         validated_data['requester'] = self.context['request'].user
-        pr = PurchaseRequisition.objects.create(**validated_data)
-        for line_data in lines_data:
-            PurchaseRequisitionLine.objects.create(purchase_requisition=pr, **line_data)
+        with transaction.atomic():
+            pr = PurchaseRequisition.objects.create(**validated_data)
+            for line_data in lines_data:
+                PurchaseRequisitionLine.objects.create(purchase_requisition=pr, **line_data)
         return pr
 
     def update(self, instance, validated_data):
         lines_data = validated_data.pop('lines', None)
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-
-        if lines_data is not None:
-            instance.lines.all().delete()
-            for line_data in lines_data:
-                PurchaseRequisitionLine.objects.create(purchase_requisition=instance, **line_data)
+        if instance.status != 'DRAFT':
+            raise serializers.ValidationError('Only draft requisitions can be edited.')
+        with transaction.atomic():
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+            instance.save()
+            if lines_data is not None:
+                instance.lines.all().delete()
+                for line_data in lines_data:
+                    PurchaseRequisitionLine.objects.create(purchase_requisition=instance, **line_data)
         return instance

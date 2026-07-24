@@ -11,6 +11,7 @@ class Role(TimeStampedModel):
         ('FINANCIAL_REVIEWER', 'Financial Reviewer'),
         ('WAREHOUSE_OFFICER', 'Warehouse Officer'),
         ('ADMIN', 'Administrator'),
+        ('SYSTEM_ADMINISTRATOR', 'System Administrator'),
     ]
 
     name = models.CharField(max_length=50, choices=ROLE_CHOICES, unique=True)

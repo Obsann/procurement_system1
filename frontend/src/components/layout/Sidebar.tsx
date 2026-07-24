@@ -10,6 +10,7 @@ import {
   ShoppingCart, 
   PackageCheck, 
   ClipboardList, 
+  CheckSquare,
   Settings 
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
@@ -30,6 +31,7 @@ const navItems = [
   { name: 'Bids', icon: Gavel, path: '/bids' },
   { name: 'Purchase Orders', icon: ShoppingCart, path: '/purchase-orders' },
   { name: 'Goods Receipts', icon: PackageCheck, path: '/goods-receipts' },
+  { name: 'Approvals', icon: CheckSquare, path: '/approvals' },
   { name: 'Audit Log', icon: ClipboardList, path: '/audit-log' },
   { name: 'Settings', icon: Settings, path: '/settings' },
 ];

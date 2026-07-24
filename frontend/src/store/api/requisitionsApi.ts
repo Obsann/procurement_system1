@@ -1,11 +1,11 @@
 import { baseApi } from './baseApi';
-import { PurchaseRequisition, PaginatedResponse } from '../../types';
+import { type PurchaseRequisition, type PaginatedResponse } from '../../types';
 
 export const requisitionsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getRequisitions: builder.query<PaginatedResponse<PurchaseRequisition>, Record<string, any>>({
       query: (params) => ({
-        url: '/requisitions',
+        url: '/requisitions/',
         method: 'GET',
         params,
       }),
@@ -13,14 +13,14 @@ export const requisitionsApi = baseApi.injectEndpoints({
     }),
     getRequisitionById: builder.query<PurchaseRequisition, string>({
       query: (id) => ({
-        url: `/requisitions/${id}`,
+        url: `/requisitions/${id}/`,
         method: 'GET',
       }),
       providesTags: (_result, _error, id) => [{ type: 'Requisition', id }],
     }),
     createRequisition: builder.mutation<PurchaseRequisition, Partial<PurchaseRequisition>>({
       query: (body) => ({
-        url: '/requisitions',
+        url: '/requisitions/',
         method: 'POST',
         data: body,
       }),
@@ -28,7 +28,7 @@ export const requisitionsApi = baseApi.injectEndpoints({
     }),
     updateRequisition: builder.mutation<PurchaseRequisition, { id: string; data: Partial<PurchaseRequisition> }>({
       query: ({ id, data }) => ({
-        url: `/requisitions/${id}`,
+        url: `/requisitions/${id}/`,
         method: 'PUT',
         data,
       }),
@@ -36,14 +36,14 @@ export const requisitionsApi = baseApi.injectEndpoints({
     }),
     deleteRequisition: builder.mutation<void, string>({
       query: (id) => ({
-        url: `/requisitions/${id}`,
+        url: `/requisitions/${id}/`,
         method: 'DELETE',
       }),
       invalidatesTags: ['Requisition'],
     }),
     submitRequisition: builder.mutation<PurchaseRequisition, string>({
       query: (id) => ({
-        url: `/requisitions/${id}/submit`,
+        url: `/requisitions/${id}/submit/`,
         method: 'POST',
       }),
       invalidatesTags: (_result, _error, id) => [{ type: 'Requisition', id }, 'Requisition'],

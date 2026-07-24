@@ -1,5 +1,5 @@
 import { baseApi } from './baseApi';
-import { RFQ, PaginatedResponse } from '../../types';
+import { type RFQ, type PaginatedResponse } from '../../types';
 
 export const rfqApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({

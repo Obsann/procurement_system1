@@ -1,42 +1,52 @@
-
-from rest_framework import viewsets
-from rest_framework.exceptions import ValidationError
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from .models import FinancialReview
 from .serializers import FinancialReviewSerializer
 from apps.orders.models import PurchaseOrder
-from apps.core.permissions import IsFinancialReviewer
+from apps.core.workflow import WorkflowEngine
+
 
 class FinancialReviewViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint for Financial Reviewers to approve or return Purchase Orders.
-    """
-    queryset = FinancialReview.objects.all()
+    queryset = FinancialReview.objects.all().order_by('-reviewed_at')
     serializer_class = FinancialReviewSerializer
-    permission_classes = [IsFinancialReviewer]
-    http_method_names = ['get', 'post']
+    permission_classes = [permissions.IsAuthenticated]
 
-    def perform_create(self, serializer):
-        po = serializer.validated_data['purchase_order']
-        decision = serializer.validated_data['decision']
-        reviewer = self.request.user
+    @action(detail=False, methods=['post'], url_path='review')
+    def review_po(self, request):
+        po_id = request.data.get('purchase_order')
+        decision = request.data.get('decision')
+        comments = request.data.get('comments', '')
 
-        # Business Rule: Can only review POs currently in FINANCIAL_REVIEW
-        if po.status != 'FINANCIAL_REVIEW':
-            raise ValidationError({
-                'error': f'Cannot review PO. Current status is {po.status}, must be FINANCIAL_REVIEW.'
-            })
+        if not po_id or not decision:
+            return Response({'error': 'purchase_order and decision are required.'}, status=400)
 
-        # Save the review record
-        review = serializer.save(reviewer=reviewer)
+        try:
+            po = PurchaseOrder.objects.get(id=po_id)
+        except PurchaseOrder.DoesNotExist:
+            return Response({'error': 'Purchase Order not found.'}, status=404)
 
-        # Transition the PO status
-        if decision == 'APPROVED':
-            # For MVP, we transition straight to PO_APPROVED to bypass FINAL_APPROVAL delay
-            po.status = 'PO_APPROVED'
-            po.final_approved_at = review.reviewed_at
-        elif decision == 'RETURNED':
-            # Return to PO_CREATED so Procurement can fix it
-            po.status = 'PO_CREATED'
-        
-        po.save()
+        if decision not in {'APPROVED', 'RETURNED'}:
+            return Response({'error': 'decision must be APPROVED or RETURNED.'}, status=400)
 
+        action_name = 'approve_financial' if decision == 'APPROVED' else 'return'
+        previous_status = po.status
+        try:
+            next_status, _ = WorkflowEngine.transition_for_user('PO', po, action_name, request.user)
+        except Exception as exc:
+            return Response({'error': str(exc)}, status=400)
+
+        review = FinancialReview.objects.create(
+            purchase_order=po,
+            reviewer=request.user,
+            decision=decision,
+            comments=comments,
+            previous_status=previous_status,
+            new_status=next_status,
+        )
+
+        return Response({
+            'message': f'Financial review {decision.lower()} successfully.',
+            'review_id': str(review.id),
+            'new_status': next_status,
+        })

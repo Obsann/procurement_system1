@@ -61,3 +61,27 @@ class WorkflowEngine:
         entity.status = next_status
         entity.save()
         return next_status
+
+    @classmethod
+    def transition_for_user(cls, entity_type, entity, action, user):
+        """Use any assigned role that is authorised for this exact transition.
+
+        Selecting the first role is unsafe because role ordering is undefined
+        and can reject a user who legitimately holds the required role.
+        """
+        roles = list(user.roles.values_list('name', flat=True))
+        if getattr(user, 'is_staff', False):
+            roles.append('ADMIN')
+        for role in roles:
+            if cls.can_transition(entity_type, entity.status, action, role)[0]:
+                previous_status = entity.status
+                next_status = cls.transition(entity_type, entity, action, role)
+                from .events import record_workflow_transition
+                record_workflow_transition(
+                    entity_type=entity_type, entity=entity, previous_status=previous_status,
+                    new_status=next_status, actor=user,
+                )
+                return next_status, role
+        raise InvalidTransitionError(
+            f"User has no role authorised to perform '{action}' on {entity_type} in state '{entity.status}'."
+        )

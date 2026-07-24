@@ -49,7 +49,8 @@ class PurchaseRequisitionLine(TimeStampedModel):
 
     @property
     def estimated_total(self):
-        return self.quantity * self.estimated_unit_price
+        from decimal import Decimal
+        return Decimal(str(self.quantity)) * Decimal(str(self.estimated_unit_price))
 
 class PurchaseRequisitionAttachment(TimeStampedModel):
     purchase_requisition = models.ForeignKey(PurchaseRequisition, on_delete=models.CASCADE, related_name='attachments')

@@ -25,7 +25,7 @@ class Command(BaseCommand):
 
         org, _ = Organization.objects.get_or_create(
             code='HQ',
-            defaults={'name': 'Main Organization', 'country': 'Ethiopia'}
+            defaults={'name': 'Main Organization'}
         )
 
         dept, _ = Department.objects.get_or_create(

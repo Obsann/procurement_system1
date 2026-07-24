@@ -5,7 +5,7 @@ export const notificationsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getNotifications: builder.query<PaginatedResponse<Notification>, Record<string, any>>({
       query: (params) => ({
-        url: '/notifications',
+        url: '/notifications/',
         method: 'GET',
         params,
       }),
@@ -13,14 +13,14 @@ export const notificationsApi = baseApi.injectEndpoints({
     }),
     markRead: builder.mutation<void, string>({
       query: (id) => ({
-        url: `/notifications/${id}/read`,
+        url: `/notifications/${id}/mark-read/`,
         method: 'POST',
       }),
       invalidatesTags: ['Notification'],
     }),
     markAllRead: builder.mutation<void, void>({
       query: () => ({
-        url: '/notifications/read-all',
+        url: '/notifications/mark-all-read/',
         method: 'POST',
       }),
       invalidatesTags: ['Notification'],

@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions, status
+from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
@@ -7,9 +7,12 @@ from .serializers import PurchaseRequisitionSerializer
 from apps.core.workflow import WorkflowEngine
 
 class PurchaseRequisitionViewSet(viewsets.ModelViewSet):
-    queryset = PurchaseRequisition.objects.all().order_by('-created_at')
+    queryset = PurchaseRequisition.objects.select_related('requester', 'department', 'delivery_location').prefetch_related('lines', 'attachments').order_by('-created_at')
     serializer_class = PurchaseRequisitionSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filterset_fields = ['status', 'department']
+    search_fields = ['pr_number', 'title', 'description']
+    ordering_fields = ['created_at', 'required_delivery_date', 'status']
 
     def get_queryset(self):
         user = self.request.user
@@ -22,8 +25,7 @@ class PurchaseRequisitionViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def submit(self, request, pk=None):
         pr = self.get_object()
-        user_role = request.user.roles.first().name if request.user.roles.exists() else 'REQUESTER'
-        next_status = WorkflowEngine.transition('PR', pr, 'submit', user_role)
+        next_status, _ = WorkflowEngine.transition_for_user('PR', pr, 'submit', request.user)
         pr.submitted_at = timezone.now()
         pr.save()
         return Response({'status': next_status, 'message': 'Purchase Requisition submitted successfully.'})

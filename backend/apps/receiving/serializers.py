@@ -6,6 +6,7 @@ class GoodsReceiptLineSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoodsReceiptLine
         fields = '__all__'
+        read_only_fields = ['goods_receipt']
 
 
 class GoodsReceiptSerializer(serializers.ModelSerializer):

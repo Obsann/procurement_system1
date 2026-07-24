@@ -5,7 +5,7 @@ export const auditApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getAuditLogs: builder.query<PaginatedResponse<AuditLog>, Record<string, any>>({
       query: (params) => ({
-        url: '/audit',
+        url: '/audit-logs/',
         method: 'GET',
         params,
       }),

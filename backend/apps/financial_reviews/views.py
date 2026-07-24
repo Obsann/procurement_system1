@@ -8,7 +8,7 @@ from apps.core.workflow import WorkflowEngine
 
 
 class FinancialReviewViewSet(viewsets.ModelViewSet):
-    queryset = FinancialReview.objects.all().order_by('-created_at')
+    queryset = FinancialReview.objects.select_related('purchase_order', 'reviewer').order_by('-created_at')
     serializer_class = FinancialReviewSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -26,10 +26,11 @@ class FinancialReviewViewSet(viewsets.ModelViewSet):
         except PurchaseOrder.DoesNotExist:
             return Response({'error': 'Purchase Order not found.'}, status=404)
 
-        user_role = request.user.roles.first().name if request.user.roles.exists() else 'FINANCIAL_REVIEWER'
         previous_status = po.status
+        if decision not in {'APPROVED', 'RETURNED'}:
+            return Response({'error': 'decision must be APPROVED or RETURNED.'}, status=400)
         action_name = 'approve_financial' if decision == 'APPROVED' else 'return'
-        next_status = WorkflowEngine.transition('PO', po, action_name, user_role)
+        next_status, user_role = WorkflowEngine.transition_for_user('PO', po, action_name, request.user)
 
         review = FinancialReview.objects.create(
             purchase_order=po,

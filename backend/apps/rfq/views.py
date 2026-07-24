@@ -13,13 +13,11 @@ class RFQViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def send(self, request, pk=None):
         rfq = self.get_object()
-        user_role = request.user.roles.first().name if request.user.roles.exists() else 'PROCUREMENT_OFFICER'
-        next_status = WorkflowEngine.transition('RFQ', rfq, 'send', user_role)
+        next_status, _ = WorkflowEngine.transition_for_user('RFQ', rfq, 'send', request.user)
         return Response({'status': next_status, 'message': 'RFQ marked as sent to suppliers.'})
 
     @action(detail=True, methods=['post'])
     def close(self, request, pk=None):
         rfq = self.get_object()
-        user_role = request.user.roles.first().name if request.user.roles.exists() else 'PROCUREMENT_OFFICER'
-        next_status = WorkflowEngine.transition('RFQ', rfq, 'close', user_role)
+        next_status, _ = WorkflowEngine.transition_for_user('RFQ', rfq, 'close', request.user)
         return Response({'status': next_status, 'message': 'RFQ closed successfully.'})

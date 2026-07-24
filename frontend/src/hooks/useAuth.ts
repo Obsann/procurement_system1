@@ -1,23 +1,23 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
 import { setCredentials, logout } from '../store/slices/authSlice';
-import { useLoginMutation, useLogoutMutation } from '../store/api/authApi';
+import { useLoginMutation } from '../store/api/authApi';
 import { LoginRequest } from '../types';
+import api from '../lib/api';
 
 export const useAuth = () => {
   const dispatch = useDispatch();
   const authState = useSelector((state: RootState) => state.auth);
   const [loginMutation, { isLoading: isLoggingIn }] = useLoginMutation();
-  const [logoutMutation] = useLogoutMutation();
 
   const login = async (credentials: LoginRequest) => {
     try {
       const result = await loginMutation(credentials).unwrap();
-      dispatch(setCredentials({ user: result.user, token: result.token }));
-      if (result.refreshToken) {
-        localStorage.setItem('refreshToken', result.refreshToken);
-      }
-      return result;
+      localStorage.setItem('token', result.access);
+      localStorage.setItem('refreshToken', result.refresh);
+      const { data: user } = await api.get('/auth/profile/');
+      dispatch(setCredentials({ user, token: result.access }));
+      return user;
     } catch (error) {
       throw error;
     }
@@ -25,9 +25,7 @@ export const useAuth = () => {
 
   const handleLogout = async () => {
     try {
-      if (authState.isAuthenticated) {
-        await logoutMutation().unwrap();
-      }
+      // JWT logout is local: the refresh token is removed below.
     } catch (e) {
       console.error('Logout error', e);
     } finally {

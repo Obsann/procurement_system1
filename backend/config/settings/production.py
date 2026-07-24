@@ -2,6 +2,13 @@ from .base import *
 
 DEBUG = False
 
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost').split(',')
+if not SECRET_KEY or SECRET_KEY.startswith('django-insecure-'):
+    raise RuntimeError('Set a strong DJANGO_SECRET_KEY before running production settings.')
+if not ALLOWED_HOSTS:
+    raise RuntimeError('Set DJANGO_ALLOWED_HOSTS before running production settings.')
 
-CORS_ALLOWED_ORIGINS = os.environ.get('DJANGO_CORS_ALLOWED_ORIGINS', 'http://localhost').split(',')
+CORS_ALLOW_CREDENTIALS = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+SESSION_COOKIE_SECURE = os.environ.get('DJANGO_SECURE_COOKIES', 'True').lower() == 'true'
+CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE

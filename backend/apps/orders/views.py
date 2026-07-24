@@ -8,9 +8,12 @@ from apps.core.workflow import WorkflowEngine
 
 
 class PurchaseOrderViewSet(viewsets.ModelViewSet):
-    queryset = PurchaseOrder.objects.all().order_by('-created_at')
+    queryset = PurchaseOrder.objects.select_related('purchase_requisition', 'rfq', 'supplier', 'created_by').prefetch_related('lines').order_by('-created_at')
     serializer_class = PurchaseOrderSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filterset_fields = ['status', 'supplier', 'purchase_requisition']
+    search_fields = ['po_number', 'supplier__legal_name']
+    ordering_fields = ['created_at', 'total_amount', 'status']
 
     @action(detail=False, methods=['post'], url_path='generate-from-bid')
     def generate_from_bid(self, request):
@@ -55,8 +58,7 @@ class PurchaseOrderViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='submit-for-review')
     def submit_for_review(self, request, pk=None):
         po = self.get_object()
-        user_role = request.user.roles.first().name if request.user.roles.exists() else 'PROCUREMENT_OFFICER'
-        next_status = WorkflowEngine.transition('PO', po, 'submit_for_review', user_role)
+        next_status, _ = WorkflowEngine.transition_for_user('PO', po, 'submit_for_review', request.user)
         po.submitted_at = timezone.now()
         po.save()
         return Response({'status': next_status, 'message': 'PO submitted for financial review.'})

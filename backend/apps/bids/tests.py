@@ -227,6 +227,9 @@ class BidAPITest(APITestCase):
 
     def test_select_winner_action(self):
         bid_a = make_bid(self.rfq, self.supplier, '3500.00', self.proc)
+        # BR-06 requires at least 2 distinct suppliers — add a second
+        supplier_b = make_supplier('Bid Supplier B', 'bidsupB@test.com')
+        make_bid(self.rfq, supplier_b, '4000.00', self.proc)
         self.client.force_authenticate(user=self.proc)
         url = f'{self.list_url}{bid_a.pk}/select_winner/'
         resp = self.client.post(url, {}, format='json')

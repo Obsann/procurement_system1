@@ -17,7 +17,7 @@ class BidViewSet(viewsets.ModelViewSet):
     permission_classes = [IsProcurementOfficer]
     http_method_names = ['get', 'post'] # Only allow viewing and creating bids initially
 
-    @action(detail=True, methods=['post'], url_path='select')
+    @action(detail=True, methods=['post'], url_path='select_winner')
     @transaction.atomic
     def select_winner(self, request, pk=None):
         """
@@ -52,5 +52,5 @@ class BidViewSet(viewsets.ModelViewSet):
         rfq.save()
 
         serializer = self.get_serializer(bid)
-        return Response({'message': 'Winning supplier selected successfully.', 'bid': serializer.data}, status=status.HTTP_200_OK)
+        return Response({'message': 'winning bidder selected successfully.', 'bid': serializer.data}, status=status.HTTP_200_OK)
 

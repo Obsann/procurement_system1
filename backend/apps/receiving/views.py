@@ -25,8 +25,9 @@ class GoodsReceiptViewSet(viewsets.ModelViewSet):
                 'error': f'BR-10 Violation: Cannot receive goods. PO status is {po.status}, must be PO_APPROVED or PARTIALLY_RECEIVED.'
             })
 
-        if not lines_data:
-            raise ValidationError({'error': 'Must receive at least one line item.'})
+        gr_status = serializer.validated_data.get('status', 'PARTIAL')
+        if not lines_data and gr_status == 'PARTIAL':
+            raise ValidationError({'error': 'Must provide at least one line item for a PARTIAL receipt.'})
 
         # 1. Save the Goods Receipt using Obsan's serializer logic
         receipt = serializer.save()
@@ -47,13 +48,13 @@ class GoodsReceiptViewSet(viewsets.ModelViewSet):
             total_received += qty_received_now
 
             # BR-10 (defense in depth): Check against ordered quantity
-            if total_received > po_line.quantity_ordered:
+            if total_received > po_line.quantity:
                 raise ValidationError({
-                    'error': f'Receiving {qty_received_now} exceeds ordered quantity for PO Line {po_line.id}. (Ordered: {po_line.quantity_ordered}, Already Received: {total_received - qty_received_now})'
+                    'error': f'Receiving {qty_received_now} exceeds ordered quantity for PO Line {po_line.id}. (Ordered: {po_line.quantity}, Already Received: {total_received - qty_received_now})'
                 })
 
             # Check if this line is fully received
-            if total_received < po_line.quantity_ordered:
+            if total_received < po_line.quantity:
                 is_fully_received = False
 
         # 3. Update PO Status

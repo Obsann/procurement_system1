@@ -51,50 +51,74 @@ export interface Location {
   address: string;
 }
 
+export type PRStatus =
+  | 'DRAFT'
+  | 'SUBMITTED'
+  | 'APPROVED'
+  | 'RETURNED'
+  | 'REJECTED'
+  | 'PROCUREMENT_PROCESSING';
+
+/**
+ * Mirrors PurchaseRequisitionSerializer. DRF renders DecimalField as a string,
+ * so monetary and quantity fields are typed as such rather than as numbers.
+ */
 export interface PurchaseRequisition {
   id: string;
-  prNumber: string;
+  pr_number: string;
+  requester: string;
+  requester_name: string;
+  department: string | null;
+  department_name: string | null;
   title: string;
   description: string;
+  delivery_location: string | null;
+  required_delivery_date: string | null;
+  currency: string;
   status: PRStatus;
-  requesterId: string;
-  departmentId: string;
-  locationId: string;
-  requiredDate: string;
-  totalEstimatedAmount: number;
-  createdAt: string;
-  updatedAt: string;
+  total_estimated_amount: string;
   lines: PurchaseRequisitionLine[];
   attachments: PurchaseRequisitionAttachment[];
+  submitted_at: string | null;
+  approved_at: string | null;
+  created_at: string;
 }
-
-export type PRStatus = 
-  | 'DRAFT' 
-  | 'SUBMITTED' 
-  | 'APPROVED' 
-  | 'RETURNED' 
-  | 'REJECTED' 
-  | 'PROCUREMENT_PROCESSING' 
-  | 'PO_CREATED';
 
 export interface PurchaseRequisitionLine {
   id: string;
-  prId: string;
-  itemName: string;
+  item_name: string;
   description?: string;
-  category: string;
-  quantity: number;
-  unit: string;
-  estimatedPrice: number;
-  totalPrice: number;
+  category?: string;
+  quantity: string;
+  unit_of_measure?: string;
+  estimated_unit_price: string;
+  estimated_total: string;
+  sort_order?: number;
+}
+
+/** Payload shape for creating or updating a line; the API computes the total. */
+export type PurchaseRequisitionLineInput = Omit<
+  PurchaseRequisitionLine,
+  'id' | 'estimated_total'
+>;
+
+/** Writable fields on a requisition; everything else is server-assigned. */
+export interface PurchaseRequisitionInput {
+  title: string;
+  description: string;
+  department: string;
+  delivery_location: string | null;
+  required_delivery_date: string | null;
+  currency: string;
+  lines: PurchaseRequisitionLineInput[];
 }
 
 export interface PurchaseRequisitionAttachment {
   id: string;
-  prId: string;
-  fileName: string;
-  fileUrl: string;
-  uploadedAt: string;
+  file: string;
+  file_name: string;
+  file_size: number;
+  created_at: string;
 }
 
 export interface Supplier {
@@ -254,12 +278,12 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
+/** Mirrors apps/core/pagination.py (DRF PageNumberPagination). */
 export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
 }
 
 export interface LoginRequest {

@@ -1,5 +1,9 @@
 import { baseApi } from './baseApi';
-import { type PurchaseRequisition, type PaginatedResponse } from '../../types';
+import {
+  type PaginatedResponse,
+  type PurchaseRequisition,
+  type PurchaseRequisitionInput,
+} from '../../types';
 
 export const requisitionsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -18,7 +22,7 @@ export const requisitionsApi = baseApi.injectEndpoints({
       }),
       providesTags: (_result, _error, id) => [{ type: 'Requisition', id }],
     }),
-    createRequisition: builder.mutation<PurchaseRequisition, Partial<PurchaseRequisition>>({
+    createRequisition: builder.mutation<PurchaseRequisition, PurchaseRequisitionInput>({
       query: (body) => ({
         url: '/requisitions/',
         method: 'POST',
@@ -26,7 +30,10 @@ export const requisitionsApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Requisition'],
     }),
-    updateRequisition: builder.mutation<PurchaseRequisition, { id: string; data: Partial<PurchaseRequisition> }>({
+    updateRequisition: builder.mutation<
+      PurchaseRequisition,
+      { id: string; data: PurchaseRequisitionInput }
+    >({
       query: ({ id, data }) => ({
         url: `/requisitions/${id}/`,
         method: 'PUT',

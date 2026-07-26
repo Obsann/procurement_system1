@@ -9,6 +9,7 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 
 from apps.accounts.models import User, Role, UserRole
+from apps.auditing.models import AuditLog
 from apps.organizations.models import Organization, Department
 from apps.procurement.models import PurchaseRequisition
 from apps.suppliers.models import Supplier
@@ -268,3 +269,94 @@ class GoodsReceiptAPITest(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data['grn_number'], gr.grn_number)
         self.assertEqual(resp.data['po_number'], self.po.po_number)
+
+    def test_receiving_full_ordered_quantity_closes_po(self):
+        """Receiving exactly the ordered quantity must succeed and close the PO."""
+        self.client.force_authenticate(user=self.wh)
+        data = {
+            'purchase_order': str(self.po.pk),
+            'received_date': str(datetime.date.today()),
+            'status': 'COMPLETE',
+            'lines': [
+                {
+                    'po_line': str(self.po_line.pk),
+                    'expected_quantity': '3.00',
+                    'received_quantity': '3.00',
+                }
+            ],
+        }
+        resp = self.client.post(self.list_url, data, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED, resp.data)
+        self.po.refresh_from_db()
+        self.assertEqual(self.po.status, 'GOODS_RECEIVED')
+
+    def test_partial_then_remaining_receipt_closes_po(self):
+        """Two receipts summing to the ordered quantity must be accepted."""
+        self.client.force_authenticate(user=self.wh)
+        base = {
+            'purchase_order': str(self.po.pk),
+            'received_date': str(datetime.date.today()),
+        }
+        first = self.client.post(self.list_url, {
+            **base, 'status': 'PARTIAL',
+            'lines': [{'po_line': str(self.po_line.pk),
+                       'expected_quantity': '3.00', 'received_quantity': '1.00'}],
+        }, format='json')
+        self.assertEqual(first.status_code, status.HTTP_201_CREATED, first.data)
+        self.po.refresh_from_db()
+        self.assertEqual(self.po.status, 'PARTIALLY_RECEIVED')
+
+        second = self.client.post(self.list_url, {
+            **base, 'status': 'COMPLETE',
+            'lines': [{'po_line': str(self.po_line.pk),
+                       'expected_quantity': '3.00', 'received_quantity': '2.00'}],
+        }, format='json')
+        self.assertEqual(second.status_code, status.HTTP_201_CREATED, second.data)
+        self.po.refresh_from_db()
+        self.assertEqual(self.po.status, 'GOODS_RECEIVED')
+
+    def test_over_receipt_is_rejected(self):
+        self.client.force_authenticate(user=self.wh)
+        resp = self.client.post(self.list_url, {
+            'purchase_order': str(self.po.pk),
+            'received_date': str(datetime.date.today()),
+            'status': 'COMPLETE',
+            'lines': [{'po_line': str(self.po_line.pk),
+                       'expected_quantity': '3.00', 'received_quantity': '4.00'}],
+        }, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(GoodsReceipt.objects.filter(purchase_order=self.po).count(), 0)
+
+    def test_unreceived_second_line_keeps_po_open(self):
+        """A PO is only closed once every ordered line has been received."""
+        second_line = add_po_line(self.po, item='Rack', qty='2.00',
+                                  unit_price='500.00', total='1000.00')
+        self.client.force_authenticate(user=self.wh)
+        resp = self.client.post(self.list_url, {
+            'purchase_order': str(self.po.pk),
+            'received_date': str(datetime.date.today()),
+            'status': 'PARTIAL',
+            'lines': [{'po_line': str(self.po_line.pk),
+                       'expected_quantity': '3.00', 'received_quantity': '3.00'}],
+        }, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED, resp.data)
+        self.po.refresh_from_db()
+        self.assertEqual(self.po.status, 'PARTIALLY_RECEIVED')
+        self.assertEqual(second_line.goodsreceiptline_set.count(), 0)
+
+    def test_goods_receipt_records_audit_log(self):
+        """BR-11: closing a PO through goods receipt must be auditable."""
+        self.client.force_authenticate(user=self.wh)
+        resp = self.client.post(self.list_url, {
+            'purchase_order': str(self.po.pk),
+            'received_date': str(datetime.date.today()),
+            'status': 'COMPLETE',
+            'lines': [{'po_line': str(self.po_line.pk),
+                       'expected_quantity': '3.00', 'received_quantity': '3.00'}],
+        }, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED, resp.data)
+        self.assertTrue(
+            AuditLog.objects.filter(
+                entity_id=self.po.pk, new_status='GOODS_RECEIVED'
+            ).exists()
+        )

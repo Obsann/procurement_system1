@@ -24,7 +24,14 @@ class WorkflowEngine:
             'return': ('PO_CREATED', ['BUDGET_HOLDER', 'ADMIN']),
             'reject': ('REJECTED', ['BUDGET_HOLDER', 'ADMIN'])
         },
-        'PO_APPROVED': {'receive': ('GOODS_RECEIVED', ['WAREHOUSE_OFFICER', 'ADMIN'])},
+        'PO_APPROVED': {
+            'receive_partial': ('PARTIALLY_RECEIVED', ['WAREHOUSE_OFFICER', 'ADMIN']),
+            'receive': ('GOODS_RECEIVED', ['WAREHOUSE_OFFICER', 'ADMIN']),
+        },
+        'PARTIALLY_RECEIVED': {
+            'receive_partial': ('PARTIALLY_RECEIVED', ['WAREHOUSE_OFFICER', 'ADMIN']),
+            'receive': ('GOODS_RECEIVED', ['WAREHOUSE_OFFICER', 'ADMIN']),
+        },
     }
 
     RFQ_TRANSITIONS = {

@@ -1,17 +1,21 @@
+from decimal import Decimal
 
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets
 from django.db import transaction
 from rest_framework.exceptions import ValidationError
 from django.db.models import Sum
 from .models import GoodsReceipt, GoodsReceiptLine
 from .serializers import GoodsReceiptSerializer
-from apps.orders.models import PurchaseOrder
 from apps.core.permissions import IsWarehouseOfficer
+from apps.core.workflow import WorkflowEngine
+
+RECEIVABLE_PO_STATUSES = ('PO_APPROVED', 'PARTIALLY_RECEIVED')
+
 
 class GoodsReceiptViewSet(viewsets.ModelViewSet):
     queryset = GoodsReceipt.objects.all().order_by('-created_at')
     serializer_class = GoodsReceiptSerializer
-    permission_classes = [IsWarehouseOfficer] # Apply your RBAC rule
+    permission_classes = [IsWarehouseOfficer]
     http_method_names = ['get', 'post']
 
     @transaction.atomic
@@ -19,49 +23,50 @@ class GoodsReceiptViewSet(viewsets.ModelViewSet):
         po = serializer.validated_data['purchase_order']
         lines_data = serializer.validated_data.get('lines', [])
 
-        # BR-10: Check PO Status
-        if po.status not in ['PO_APPROVED', 'PARTIALLY_RECEIVED']:
+        # BR-10: goods may only be received against a fully approved PO.
+        if po.status not in RECEIVABLE_PO_STATUSES:
             raise ValidationError({
-                'error': f'BR-10 Violation: Cannot receive goods. PO status is {po.status}, must be PO_APPROVED or PARTIALLY_RECEIVED.'
+                'error': f'BR-10 Violation: Cannot receive goods. PO status is {po.status}, '
+                         f'must be one of {", ".join(RECEIVABLE_PO_STATUSES)}.'
             })
 
         gr_status = serializer.validated_data.get('status', 'PARTIAL')
         if not lines_data and gr_status == 'PARTIAL':
             raise ValidationError({'error': 'Must provide at least one line item for a PARTIAL receipt.'})
 
-        # 1. Save the Goods Receipt using Obsan's serializer logic
-        receipt = serializer.save()
+        # Totals must be read before saving, otherwise the lines being created
+        # are aggregated alongside the incoming quantities and counted twice.
+        received_by_line = {
+            row['po_line']: row['total']
+            for row in GoodsReceiptLine.objects
+            .filter(po_line__purchase_order=po)
+            .values('po_line')
+            .annotate(total=Sum('received_quantity'))
+        }
 
-        is_fully_received = True
-
-        # 2. Validate quantities and update PO Line tracking
         for line_data in lines_data:
             po_line = line_data['po_line']
-            qty_received_now = line_data['received_quantity']
-            
-            # Calculate total received for this PO Line across all receipts
-            total_received = GoodsReceiptLine.objects.filter(po_line=po_line).aggregate(
-                total=Sum('received_quantity')
-            )['total'] or 0
+            incoming = line_data['received_quantity']
+            already_received = received_by_line.get(po_line.pk, Decimal('0'))
+            running_total = already_received + incoming
 
-            # Add the current quantity being received
-            total_received += qty_received_now
-
-            # BR-10 (defense in depth): Check against ordered quantity
-            if total_received > po_line.quantity:
+            if running_total > po_line.quantity:
                 raise ValidationError({
-                    'error': f'Receiving {qty_received_now} exceeds ordered quantity for PO Line {po_line.id}. (Ordered: {po_line.quantity}, Already Received: {total_received - qty_received_now})'
+                    'error': f'Receiving {incoming} exceeds ordered quantity for PO Line {po_line.id}. '
+                             f'(Ordered: {po_line.quantity}, Already Received: {already_received})'
                 })
 
-            # Check if this line is fully received
-            if total_received < po_line.quantity:
-                is_fully_received = False
+            received_by_line[po_line.pk] = running_total
 
-        # 3. Update PO Status
-        if is_fully_received:
-            po.status = 'GOODS_RECEIVED'
-        else:
-            po.status = 'PARTIALLY_RECEIVED'
-        
-        po.save()
+        serializer.save()
 
+        # The PO closes only once every ordered line is satisfied, not merely
+        # the lines that happened to appear on this receipt.
+        is_fully_received = all(
+            received_by_line.get(line.pk, Decimal('0')) >= line.quantity
+            for line in po.lines.all()
+        )
+
+        WorkflowEngine.transition_for_user(
+            'PO', po, 'receive' if is_fully_received else 'receive_partial', self.request.user
+        )

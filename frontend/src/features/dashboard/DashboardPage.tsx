@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { FileText, CheckCircle, Clock } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { displayName } from '../../lib/user';
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -10,7 +11,7 @@ export const DashboardPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold tracking-tight text-slate-100">
-          Welcome back, {user?.name || 'User'} 👋
+          Welcome back, {displayName(user)} 👋
         </h2>
       </div>
 

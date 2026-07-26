@@ -11,6 +11,7 @@ class PurchaseOrder(TimeStampedModel):
         ('FINAL_APPROVAL', 'Final Approval'),
         ('PO_APPROVED', 'PO Approved'),
         ('REJECTED', 'Rejected'),
+        ('PARTIALLY_RECEIVED', 'Partially Received'),
         ('GOODS_RECEIVED', 'Goods Received'),
     ]
 

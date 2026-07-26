@@ -1,5 +1,12 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import { type User } from '../../types'; // <--- Add 'type' here
+import { type User } from '../../types';
+import {
+  clearSession,
+  getAccessToken,
+  getStoredUser,
+  setAccessToken,
+  setStoredUser,
+} from '../../lib/authStorage';
 
 interface AuthState {
   user: User | null;
@@ -8,9 +15,9 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
-  user: null,
-  token: localStorage.getItem('token'),
-  isAuthenticated: !!localStorage.getItem('token'),
+  user: getStoredUser(),
+  token: getAccessToken(),
+  isAuthenticated: !!getAccessToken(),
 };
 
 const authSlice = createSlice({
@@ -24,16 +31,14 @@ const authSlice = createSlice({
       state.user = action.payload.user;
       state.token = action.payload.token;
       state.isAuthenticated = true;
-      localStorage.setItem('token', action.payload.token);
-      localStorage.setItem('user', JSON.stringify(action.payload.user));
+      setAccessToken(action.payload.token);
+      setStoredUser(action.payload.user);
     },
     logout: (state) => {
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
+      clearSession();
     },
   },
 });

@@ -18,6 +18,7 @@ import { twMerge } from 'tailwind-merge';
 import { type RootState } from '../../store/store';
 import { toggleSidebar } from '../../store/slices/uiSlice';
 import { useAuth } from '../../hooks/useAuth';
+import { displayName, formatRole, initials, primaryRole } from '../../lib/user';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -81,12 +82,12 @@ export const Sidebar: React.FC = () => {
 
       <div className="p-4 border-t border-slate-800 flex items-center cursor-pointer hover:bg-slate-800/50 transition-colors" onClick={() => dispatch(toggleSidebar())}>
         <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center text-white font-bold shrink-0">
-          {user?.name?.charAt(0) || 'U'}
+          {initials(user)}
         </div>
         {!collapsed && (
           <div className="ml-3 overflow-hidden">
-            <p className="text-sm font-medium text-slate-200 truncate">{user?.name || 'User'}</p>
-            <p className="text-xs text-slate-500 truncate">{user?.role || 'Role'}</p>
+            <p className="text-sm font-medium text-slate-200 truncate">{displayName(user)}</p>
+            <p className="text-xs text-slate-500 truncate">{formatRole(primaryRole(user))}</p>
           </div>
         )}
       </div>

@@ -7,7 +7,14 @@ import sys
 def main():
     """Run administrative tasks."""
 
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.development')
+    # `test` gets its own settings so nobody has to remember a --settings flag
+    # to get a fast, throttle-free run. An explicit env var still wins.
+    default_settings = (
+        'config.settings.test'
+        if sys.argv[1:2] == ['test']
+        else 'config.settings.development'
+    )
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', default_settings)
 
     try:
         from django.core.management import execute_from_command_line

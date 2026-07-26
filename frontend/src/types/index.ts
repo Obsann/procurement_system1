@@ -1,20 +1,32 @@
+/** Mirrors `Role.ROLE_CHOICES` in apps/accounts/models.py. */
+export type Role =
+  | 'REQUESTER'
+  | 'BUDGET_HOLDER'
+  | 'PROCUREMENT_OFFICER'
+  | 'FINANCIAL_REVIEWER'
+  | 'WAREHOUSE_OFFICER'
+  | 'ADMIN'
+  | 'SYSTEM_ADMINISTRATOR';
+
+export interface UserRole {
+  id: string;
+  name: Role;
+  description?: string;
+}
+
+/** Mirrors `UserSerializer` in apps/accounts/serializers.py. */
 export interface User {
   id: string;
   email: string;
-  name: string;
-  role: Role;
-  departmentId?: string;
-  locationId?: string;
+  first_name: string;
+  last_name: string;
+  phone?: string;
+  department?: string | null;
+  department_name?: string | null;
+  roles: UserRole[];
+  is_active: boolean;
+  date_joined: string;
 }
-
-export type Role = 
-  | 'ADMIN' 
-  | 'REQUESTER' 
-  | 'DEPARTMENT_HEAD' 
-  | 'PROCUREMENT_OFFICER' 
-  | 'PROCUREMENT_MANAGER' 
-  | 'FINANCE' 
-  | 'RECEIVER';
 
 export interface Permission {
   id: string;

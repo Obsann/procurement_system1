@@ -1,96 +1,116 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import { 
-  LayoutDashboard, 
-  FileText, 
-  Users, 
-  FileBox, 
-  Gavel, 
-  ShoppingCart, 
-  PackageCheck, 
-  ClipboardList, 
-  CheckSquare,
-  Settings 
-} from 'lucide-react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { useDispatch, useSelector } from 'react-redux';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { cn } from '../../lib/cn';
 import { type RootState } from '../../store/store';
 import { toggleSidebar } from '../../store/slices/uiSlice';
 import { useAuth } from '../../hooks/useAuth';
-import { displayName, formatRole, initials, primaryRole } from '../../lib/user';
+import { displayName, formatRole, initials, roleNames } from '../../lib/user';
+import { isNavItemVisible, navItems } from './navigation';
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+interface SidebarProps {
+  mobileOpen: boolean;
+  onCloseMobile: () => void;
 }
 
-const navItems = [
-  { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-  { name: 'Requisitions', icon: FileText, path: '/requisitions' },
-  { name: 'Suppliers', icon: Users, path: '/suppliers' },
-  { name: 'RFQs', icon: FileBox, path: '/rfqs' },
-  { name: 'Bids', icon: Gavel, path: '/bids' },
-  { name: 'Purchase Orders', icon: ShoppingCart, path: '/purchase-orders' },
-  { name: 'Goods Receipts', icon: PackageCheck, path: '/goods-receipts' },
-  { name: 'Approvals', icon: CheckSquare, path: '/approvals' },
-  { name: 'Audit Log', icon: ClipboardList, path: '/audit-log' },
-  { name: 'Settings', icon: Settings, path: '/settings' },
-];
-
-export const Sidebar: React.FC = () => {
-  const collapsed = useSelector((state: RootState) => state.ui.sidebarCollapsed);
+export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile }) => {
   const dispatch = useDispatch();
+  const collapsed = useSelector((state: RootState) => state.ui.sidebarCollapsed);
   const { user } = useAuth();
+  const userRoles = roleNames(user);
+  const visibleItems = navItems.filter((item) => isNavItemVisible(item, userRoles));
 
   return (
     <aside
       className={cn(
-        "bg-slate-900 border-r border-slate-800 text-slate-300 flex flex-col transition-all duration-300 relative glass",
-        collapsed ? "w-20" : "w-64"
+        'fixed z-50 flex h-full flex-col border-r border-border-default bg-bg-surface',
+        'transition-all duration-300 md:relative',
+        collapsed ? 'w-20' : 'w-64',
+        mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
       )}
     >
-      <div className="h-16 flex items-center justify-center border-b border-slate-800">
-        <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-violet-400">
-          {collapsed ? 'PMP' : 'ProcureSync'}
-        </span>
+      <div className="flex h-16 shrink-0 items-center border-b border-border-default px-4">
+        <div className={cn('flex items-center gap-3', collapsed && 'mx-auto')}>
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-indigo text-sm font-bold text-white">
+            PS
+          </div>
+          {!collapsed && (
+            <span className="text-lg font-bold text-text-primary">ProcureSync</span>
+          )}
+        </div>
+        <button
+          type="button"
+          aria-label="Close navigation"
+          className="ml-auto text-text-muted hover:text-text-primary md:hidden"
+          onClick={onCloseMobile}
+        >
+          <X className="h-5 w-5" />
+        </button>
       </div>
 
-      <nav className="flex-1 py-4 overflow-y-auto space-y-1 px-3">
-        {navItems.map((item) => (
+      <nav aria-label="Main" className="flex-1 space-y-1 overflow-y-auto px-3 py-3">
+        {visibleItems.map((item) => (
           <NavLink
-            key={item.name}
+            key={item.path}
             to={item.path}
+            onClick={onCloseMobile}
+            title={collapsed ? item.label : undefined}
             className={({ isActive }) =>
               cn(
-                "flex items-center px-3 py-2.5 rounded-lg transition-all duration-200 group relative",
-                isActive 
-                  ? "bg-indigo-600/20 text-indigo-400" 
-                  : "hover:bg-slate-800/50 hover:text-slate-100"
+                'group flex w-full items-center gap-3 rounded-lg transition-all duration-200',
+                collapsed ? 'justify-center px-2 py-3' : 'px-3 py-2.5',
+                isActive
+                  ? 'bg-accent-indigo/10 text-accent-indigo'
+                  : 'text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary',
               )
             }
           >
-            <item.icon className={cn("shrink-0", collapsed ? "mx-auto" : "mr-3", "w-5 h-5")} />
-            {!collapsed && <span className="font-medium text-sm">{item.name}</span>}
-            {collapsed && (
-              <div className="absolute left-full ml-2 px-2 py-1 bg-slate-800 text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none z-50 whitespace-nowrap border border-slate-700">
-                {item.name}
-              </div>
+            {({ isActive }) => (
+              <>
+                <span
+                  className={cn(
+                    'shrink-0',
+                    isActive
+                      ? 'text-accent-indigo'
+                      : 'text-text-muted group-hover:text-text-secondary',
+                  )}
+                >
+                  {item.icon}
+                </span>
+                {!collapsed && <span className="text-sm font-medium">{item.label}</span>}
+              </>
             )}
           </NavLink>
         ))}
       </nav>
 
-      <div className="p-4 border-t border-slate-800 flex items-center cursor-pointer hover:bg-slate-800/50 transition-colors" onClick={() => dispatch(toggleSidebar())}>
-        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center text-white font-bold shrink-0">
+      <div
+        className={cn(
+          'shrink-0 border-t border-border-default p-3',
+          collapsed ? 'flex justify-center' : 'flex items-center gap-3',
+        )}
+      >
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-violet/20 text-xs font-bold text-accent-violet">
           {initials(user)}
         </div>
         {!collapsed && (
-          <div className="ml-3 overflow-hidden">
-            <p className="text-sm font-medium text-slate-200 truncate">{displayName(user)}</p>
-            <p className="text-xs text-slate-500 truncate">{formatRole(primaryRole(user))}</p>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-text-primary">{displayName(user)}</p>
+            <p className="truncate text-xs text-text-muted">{formatRole(userRoles[0])}</p>
           </div>
         )}
       </div>
+
+      <button
+        type="button"
+        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        className="hidden items-center justify-center border-t border-border-default py-3 text-text-muted transition-colors hover:text-text-primary md:flex"
+        onClick={() => dispatch(toggleSidebar())}
+      >
+        {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+        {!collapsed && <span className="ml-2 text-xs">Collapse</span>}
+      </button>
     </aside>
   );
 };

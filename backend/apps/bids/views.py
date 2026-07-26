@@ -12,7 +12,9 @@ class BidViewSet(viewsets.ModelViewSet):
     """
     API endpoint for viewing bids and selecting the winning supplier.
     """
-    queryset = Bid.objects.all()
+    # Unordered querysets make page boundaries non-deterministic, so a bid can
+    # appear twice across pages or not at all.
+    queryset = Bid.objects.all().order_by('-created_at')
     serializer_class = BidSerializer
     permission_classes = [IsProcurementOfficer]
     http_method_names = ['get', 'post'] # Only allow viewing and creating bids initially

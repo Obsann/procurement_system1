@@ -254,6 +254,42 @@ class RFQAPITest(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         self.assertEqual(resp.data['status'], 'DRAFT')
 
+    def test_create_rfq_with_line_items(self):
+        """An RFQ without lines asks suppliers to quote for nothing, so nested
+        creation is the normal case rather than an extra."""
+        self.client.force_authenticate(user=self.proc)
+        data = {
+            'purchase_requisition': str(self.pr.pk),
+            'title': 'RFQ with lines',
+            'description': 'Request for Quotation',
+            'submission_deadline': str(datetime.date.today() + datetime.timedelta(days=7)),
+            'lines': [
+                {'item_name': 'Network switch', 'description': '48-port', 'quantity': '2'},
+                {'item_name': 'Patch cables', 'description': 'Cat6', 'quantity': '50'},
+            ],
+        }
+
+        resp = self.client.post(self.list_url, data, format='json')
+
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED, resp.data)
+        self.assertEqual(len(resp.data['lines']), 2)
+        self.assertEqual(RFQLine.objects.filter(rfq_id=resp.data['id']).count(), 2)
+
+    def test_create_rfq_invites_the_named_suppliers(self):
+        self.client.force_authenticate(user=self.proc)
+        supplier_a = make_supplier('Supplier A', 'a@rfq.com')
+        supplier_b = make_supplier('Supplier B', 'b@rfq.com')
+
+        resp = self.client.post(self.list_url, {
+            'purchase_requisition': str(self.pr.pk),
+            'title': 'RFQ with invitees',
+            'submission_deadline': str(datetime.date.today() + datetime.timedelta(days=7)),
+            'supplier_ids': [str(supplier_a.pk), str(supplier_b.pk)],
+        }, format='json')
+
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED, resp.data)
+        self.assertEqual(RFQSupplier.objects.filter(rfq_id=resp.data['id']).count(), 2)
+
     def test_retrieve_rfq(self):
         rfq = make_rfq(self.pr, self.proc)
         self.client.force_authenticate(user=self.proc)

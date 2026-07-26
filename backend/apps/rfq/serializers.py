@@ -5,6 +5,9 @@ class RFQLineSerializer(serializers.ModelSerializer):
     class Meta:
         model = RFQLine
         fields = '__all__'
+        # The parent serializer attaches the line to the RFQ it just created,
+        # so demanding it on input makes nested creation impossible.
+        read_only_fields = ['rfq']
 
 class RFQSupplierSerializer(serializers.ModelSerializer):
     supplier_name = serializers.CharField(source='supplier.legal_name', read_only=True)

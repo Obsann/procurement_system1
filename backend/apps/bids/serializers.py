@@ -6,6 +6,8 @@ class BidLineSerializer(serializers.ModelSerializer):
     class Meta:
         model = BidLine
         fields = '__all__'
+        # Set by BidSerializer.create once the parent bid exists.
+        read_only_fields = ['bid']
 
 
 class BidAttachmentSerializer(serializers.ModelSerializer):

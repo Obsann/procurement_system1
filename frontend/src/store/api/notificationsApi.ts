@@ -25,6 +25,16 @@ export const notificationsApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Notification'],
     }),
+    // Only the paginated total is needed, so ask for the smallest page possible.
+    getUnreadCount: builder.query<number, void>({
+      query: () => ({
+        url: '/notifications/',
+        method: 'GET',
+        params: { is_read: false, page_size: 1 },
+      }),
+      transformResponse: (response: PaginatedResponse<Notification>) => response.count,
+      providesTags: ['Notification'],
+    }),
   }),
 });
 
@@ -32,4 +42,5 @@ export const {
   useGetNotificationsQuery,
   useMarkReadMutation,
   useMarkAllReadMutation,
+  useGetUnreadCountQuery,
 } = notificationsApi;

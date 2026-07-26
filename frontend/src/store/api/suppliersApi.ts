@@ -1,12 +1,5 @@
 import { baseApi } from './baseApi';
-
-// Match the shape of Obsan's PaginatedResponse
-interface PaginatedResponse<T> {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: T[];
-}
+import { type PaginatedResponse } from '../../types';
 
 export interface Supplier {
   id: string;
@@ -20,19 +13,18 @@ export interface Supplier {
 
 export const suppliersApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    // Use PaginatedResponse<Supplier> as the return type
-    // To this:
     getSuppliers: builder.query<PaginatedResponse<Supplier>, void>({
-      query: () => {
-        return { url: '/suppliers/' };
-      },
+      query: () => ({ url: '/suppliers/', method: 'GET' }),
+      providesTags: ['Supplier'],
     }),
     createSupplier: builder.mutation<Supplier, Partial<Supplier>>({
       query: (newSupplier) => ({
         url: '/suppliers/',
         method: 'POST',
-        body: newSupplier,
+        // The axios base query reads `data`; `body` would send an empty payload.
+        data: newSupplier,
       }),
+      invalidatesTags: ['Supplier'],
     }),
   }),
 });

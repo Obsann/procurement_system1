@@ -1,37 +1,47 @@
 import React from 'react';
-import { cn } from '../layout/Sidebar';
+import { cn } from '../../lib/cn';
+
+const statusStyles: Record<string, string> = {
+  DRAFT: 'bg-text-muted/20 text-text-secondary',
+  SUBMITTED: 'bg-info/20 text-info',
+  APPROVED: 'bg-success/20 text-success',
+  RETURNED: 'bg-warning/20 text-warning',
+  REJECTED: 'bg-danger/20 text-danger',
+  PROCUREMENT_PROCESSING: 'bg-accent-violet/20 text-accent-violet',
+
+  SENT: 'bg-info/20 text-info',
+  RESPONDED: 'bg-accent-violet/20 text-accent-violet',
+  CLOSED: 'bg-text-muted/20 text-text-muted',
+
+  PO_CREATED: 'bg-text-secondary/20 text-text-secondary',
+  FINANCIAL_REVIEW: 'bg-accent-violet/20 text-accent-violet',
+  FINANCIAL_APPROVED: 'bg-accent-indigo/20 text-accent-indigo',
+  FINAL_APPROVAL: 'bg-accent-indigo/20 text-accent-indigo',
+  PO_APPROVED: 'bg-success/20 text-success',
+  PARTIALLY_RECEIVED: 'bg-warning/20 text-warning',
+  GOODS_RECEIVED: 'bg-success/20 text-success',
+
+  PARTIAL: 'bg-warning/20 text-warning',
+  COMPLETE: 'bg-success/20 text-success',
+  ACTIVE: 'bg-success/20 text-success',
+  INACTIVE: 'bg-danger/20 text-danger',
+  PENDING: 'bg-warning/20 text-warning',
+};
 
 export interface StatusBadgeProps {
   status: string;
+  className?: string;
 }
 
-export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
-  const getBadgeClass = (s: string) => {
-    switch (s) {
-      case 'DRAFT': return 'badge-draft';
-      case 'SUBMITTED': return 'badge-submitted';
-      case 'APPROVED': return 'badge-approved';
-      case 'RETURNED': return 'badge-returned';
-      case 'REJECTED': return 'badge-rejected';
-      case 'PROCUREMENT_PROCESSING': return 'badge-processing';
-      case 'PO_CREATED': return 'badge-po-created';
-      case 'FINANCIAL_REVIEW': return 'badge-financial-review';
-      case 'PO_APPROVED': return 'badge-po-approved';
-      case 'GOODS_RECEIVED': return 'badge-goods-received';
-      default: return 'badge-draft';
-    }
-  };
-
-  const getLabel = (s: string) => {
-    return s.replace(/_/g, ' ');
-  };
-
-  return (
-    <span className={cn(
-      "px-2.5 py-1 text-xs font-semibold rounded-full shadow-sm capitalize whitespace-nowrap",
-      getBadgeClass(status)
-    )}>
-      {getLabel(status)}
-    </span>
-  );
-};
+export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className }) => (
+  <span
+    className={cn(
+      'inline-flex items-center whitespace-nowrap rounded-md px-2.5 py-0.5',
+      'text-xs font-semibold uppercase tracking-wide',
+      statusStyles[status] ?? 'bg-text-muted/20 text-text-secondary',
+      className,
+    )}
+  >
+    {status.replace(/_/g, ' ')}
+  </span>
+);

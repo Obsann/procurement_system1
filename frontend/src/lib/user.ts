@@ -10,6 +10,9 @@ export const displayName = (user?: User | null): string => {
 export const initials = (user?: User | null): string =>
   displayName(user).charAt(0).toUpperCase();
 
+export const roleNames = (user?: User | null): Role[] =>
+  user?.roles?.map((assigned) => assigned.name) ?? [];
+
 /** Users may hold several roles; the first is used for display purposes. */
 export const primaryRole = (user?: User | null): Role | null =>
   user?.roles?.[0]?.name ?? null;

@@ -1,10 +1,13 @@
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.db.models import Q
 from django.utils import timezone
 from .models import PurchaseRequisition
 from .serializers import PurchaseRequisitionSerializer
 from apps.core.workflow import WorkflowEngine
+
+ORG_WIDE_ROLES = ['PROCUREMENT_OFFICER', 'ADMIN', 'SYSTEM_ADMINISTRATOR']
 
 class PurchaseRequisitionViewSet(viewsets.ModelViewSet):
     queryset = PurchaseRequisition.objects.select_related('requester', 'department', 'delivery_location').prefetch_related('lines', 'attachments').order_by('-created_at')
@@ -17,9 +20,12 @@ class PurchaseRequisitionViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         queryset = super().get_queryset()
-        # Admin or procurement sees all, users see their own or department
-        if user.is_staff or user.roles.filter(name__in=['PROCUREMENT_OFFICER', 'ADMIN']).exists():
+        if user.is_staff or user.roles.filter(name__in=ORG_WIDE_ROLES).exists():
             return queryset
+        # BR-04 makes the budget holder the approver, so they have to see
+        # requisitions somebody else raised, scoped to their own department.
+        if user.department_id and user.roles.filter(name='BUDGET_HOLDER').exists():
+            return queryset.filter(Q(department_id=user.department_id) | Q(requester=user))
         return queryset.filter(requester=user)
 
     @action(detail=True, methods=['post'])

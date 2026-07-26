@@ -246,6 +246,44 @@ class PurchaseRequisitionAPITest(APITestCase):
         resp = self.client.post(url, {}, format='json')
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_budget_holder_sees_requisitions_awaiting_approval(self):
+        """BR-04 makes the Budget Holder the approver of submitted PRs, so the
+        list must show requisitions they did not raise themselves."""
+        budget_holder = make_user_with_role('bh@test.com', 'BUDGET_HOLDER', self.dept)
+        pr = make_pr(self.requester, self.dept, 'SUBMITTED')
+        self.client.force_authenticate(user=budget_holder)
+
+        resp = self.client.get(self.list_url)
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        returned = {str(row['id']) for row in resp.data['results']}
+        self.assertIn(str(pr.pk), returned)
+
+    def test_budget_holder_does_not_see_other_departments(self):
+        other_org = Organization.objects.create(name='Other Org', code='OTHER-ORG')
+        other_dept = Department.objects.create(
+            name='Other Dept', code='OTHER-DEPT', organization=other_org
+        )
+        outsider = make_user_with_role('outsider@test.com', 'REQUESTER', other_dept)
+        foreign_pr = make_pr(outsider, other_dept, 'SUBMITTED')
+        budget_holder = make_user_with_role('bh2@test.com', 'BUDGET_HOLDER', self.dept)
+        self.client.force_authenticate(user=budget_holder)
+
+        resp = self.client.get(self.list_url)
+
+        returned = {str(row['id']) for row in resp.data['results']}
+        self.assertNotIn(str(foreign_pr.pk), returned)
+
+    def test_requester_still_sees_only_their_own(self):
+        peer = make_user_with_role('peer@test.com', 'REQUESTER', self.dept)
+        peer_pr = make_pr(peer, self.dept, 'SUBMITTED')
+        self.client.force_authenticate(user=self.requester)
+
+        resp = self.client.get(self.list_url)
+
+        returned = {str(row['id']) for row in resp.data['results']}
+        self.assertNotIn(str(peer_pr.pk), returned)
+
     def test_pr_response_names_the_requester(self):
         """requester_name reads User.get_full_name, which AbstractBaseUser
         does not provide; without it the field serialises blank."""

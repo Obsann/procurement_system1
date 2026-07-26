@@ -186,41 +186,53 @@ export interface BidLine {
   remarks: string;
 }
 
+/** Mirrors PurchaseOrder.STATUS_CHOICES. */
+export type POStatus =
+  | 'PO_CREATED'
+  | 'FINANCIAL_REVIEW'
+  | 'FINANCIAL_APPROVED'
+  | 'FINAL_APPROVAL'
+  | 'PO_APPROVED'
+  | 'REJECTED'
+  | 'PARTIALLY_RECEIVED'
+  | 'GOODS_RECEIVED';
+
+/** Mirrors PurchaseOrderSerializer; decimals arrive as strings. */
 export interface PurchaseOrder {
   id: string;
-  poNumber: string;
-  prId: string;
-  supplierId: string;
+  po_number: string;
+  purchase_requisition: string;
+  pr_number: string;
+  rfq: string | null;
+  winning_bid: string | null;
+  supplier: string;
+  supplier_name: string;
   status: POStatus;
-  totalAmount: number;
-  createdAt: string;
+  currency: string;
+  subtotal: string;
+  freight_cost: string;
+  insurance_cost: string;
+  tax_amount: string;
+  total_amount: string;
+  payment_terms: string;
+  delivery_method: string;
+  delivery_location: string | null;
+  notes: string;
   lines: PurchaseOrderLine[];
+  submitted_at: string | null;
+  approved_at: string | null;
+  created_at: string;
 }
-
-export type POStatus = 
-  | 'DRAFT' 
-  | 'FINANCIAL_REVIEW' 
-  | 'PO_APPROVED' 
-  | 'RETURNED' 
-  | 'REJECTED';
 
 export interface PurchaseOrderLine {
   id: string;
-  poId: string;
-  prLineId: string;
-  quantity: number;
-  unitPrice: number;
-  totalPrice: number;
-}
-
-export interface Approval {
-  id: string;
-  entityType: string;
-  entityId: string;
-  approverId: string;
-  status: string;
-  comment?: string;
-  createdAt: string;
+  purchase_order: string;
+  item_name: string;
+  description: string;
+  quantity: string;
+  unit_price: string;
+  total_price: string;
+  sort_order: number;
 }
 
 export interface FinancialReview {

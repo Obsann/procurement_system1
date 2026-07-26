@@ -8,6 +8,9 @@ import { DashboardPage } from './features/dashboard/DashboardPage';
 import { RequisitionListPage } from './features/requisitions/RequisitionListPage';
 import { RequisitionFormPage } from './features/requisitions/RequisitionFormPage';
 import { RequisitionDetailPage } from './features/requisitions/RequisitionDetailPage';
+import { ApprovalQueuePage } from './features/approvals/ApprovalQueuePage';
+import { RequisitionReviewPage } from './features/approvals/RequisitionReviewPage';
+import { OrderReviewPage } from './features/approvals/OrderReviewPage';
 import { ResourceListPage } from './features/operations/ResourceListPage';
 import { ToastProvider } from './components/ui';
 import { navItems } from './components/layout/navigation';
@@ -34,17 +37,9 @@ const App: React.FC = () => (
           </Route>
 
           <Route element={<RoleGuard allow={rolesFor('/approvals')} />}>
-            <Route
-              path="/approvals"
-              element={
-                <ResourceListPage
-                  title="Approvals"
-                  endpoint="/approvals/"
-                  emptyMessage="No approval decisions have been recorded."
-                  readOnly
-                />
-              }
-            />
+            <Route path="/approvals" element={<ApprovalQueuePage />} />
+            <Route path="/approvals/pr/:id" element={<RequisitionReviewPage />} />
+            <Route path="/approvals/po/:id" element={<OrderReviewPage />} />
           </Route>
 
           <Route element={<RoleGuard allow={rolesFor('/rfqs')} />}>

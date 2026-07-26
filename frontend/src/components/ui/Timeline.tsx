@@ -1,5 +1,7 @@
 import React from 'react';
 import { cn } from '../../lib/cn';
+import { formatRole } from '../../lib/user';
+import { type Role } from '../../types';
 
 export interface TimelineEntry {
   id: string;
@@ -37,7 +39,7 @@ export const Timeline: React.FC<{ entries: TimelineEntry[] }> = ({ entries }) =>
           </p>
           <p className="mt-0.5 text-xs text-text-muted">
             {entry.actor}
-            {entry.actorRole ? ` · ${entry.actorRole.replace(/_/g, ' ').toLowerCase()}` : ''}
+            {entry.actorRole ? ` · ${formatRole(entry.actorRole as Role)}` : ''}
           </p>
           <p className="text-xs text-text-muted">{new Date(entry.timestamp).toLocaleString()}</p>
           {entry.comment && (

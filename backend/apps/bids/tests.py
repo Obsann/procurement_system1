@@ -225,6 +225,27 @@ class BidAPITest(APITestCase):
         self.assertEqual(resp.data['grand_total'], '9500.00')
         self.assertFalse(resp.data['is_winner'])
 
+    def test_create_bid_with_priced_lines(self):
+        """A quotation is the line prices; posting a bid without them is not a
+        realistic path, so nested creation has to work."""
+        self.client.force_authenticate(user=self.proc)
+        rfq_line = make_rfq_line(self.rfq)
+
+        resp = self.client.post(self.list_url, {
+            'rfq': str(self.rfq.pk),
+            'supplier': str(self.supplier.pk),
+            'bid_date': str(datetime.date.today()),
+            'grand_total': '2000.00',
+            'lines': [
+                {'rfq_line': str(rfq_line.pk), 'quantity_offered': '2',
+                 'unit_price': '900.00', 'total_price': '1800.00'},
+            ],
+        }, format='json')
+
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED, resp.data)
+        self.assertEqual(len(resp.data['lines']), 1)
+        self.assertEqual(BidLine.objects.filter(bid_id=resp.data['id']).count(), 1)
+
     def test_select_winner_action(self):
         bid_a = make_bid(self.rfq, self.supplier, '3500.00', self.proc)
         # BR-06 requires at least 2 distinct suppliers — add a second

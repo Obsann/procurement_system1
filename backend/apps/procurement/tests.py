@@ -245,3 +245,13 @@ class PurchaseRequisitionAPITest(APITestCase):
         url = f'/api/requisitions/{pr.pk}/submit/'
         resp = self.client.post(url, {}, format='json')
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_pr_response_names_the_requester(self):
+        """requester_name reads User.get_full_name, which AbstractBaseUser
+        does not provide; without it the field serialises blank."""
+        self.client.force_authenticate(user=self.requester)
+        pr = make_pr(self.requester, self.dept)
+        resp = self.client.get(f'/api/requisitions/{pr.pk}/')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data['requester_name'], 'First Last')
+        self.assertEqual(resp.data['department_name'], self.dept.name)

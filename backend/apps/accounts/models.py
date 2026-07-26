@@ -38,6 +38,14 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name']
 
+    def get_full_name(self):
+        # AbstractBaseUser does not supply this; serializers and the admin
+        # expect it, and its absence silently renders blank names.
+        return f"{self.first_name} {self.last_name}".strip()
+
+    def get_short_name(self):
+        return self.first_name
+
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.email})"
 

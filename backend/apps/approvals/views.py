@@ -13,6 +13,8 @@ class ApprovalViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Approval.objects.all().order_by('-created_at')
     serializer_class = ApprovalSerializer
     permission_classes = [permissions.IsAuthenticated]
+    # Lets a record show only its own approval history.
+    filterset_fields = ['entity_type', 'entity_id']
 
     @action(detail=False, methods=['post'], url_path='approve')
     def approve_entity(self, request):

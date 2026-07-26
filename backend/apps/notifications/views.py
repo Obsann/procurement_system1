@@ -9,6 +9,8 @@ from .serializers import NotificationSerializer
 class NotificationViewSet(viewsets.ModelViewSet):
     serializer_class = NotificationSerializer
     permission_classes = [permissions.IsAuthenticated]
+    # Lets the UI read an unread badge count straight off the paginated total.
+    filterset_fields = ['is_read']
 
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):

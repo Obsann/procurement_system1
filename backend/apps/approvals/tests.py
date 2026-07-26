@@ -16,6 +16,7 @@ from apps.rfq.models import RFQ
 from apps.bids.models import Bid
 from apps.orders.models import PurchaseOrder
 from apps.approvals.models import Approval
+from apps.notifications.models import Notification
 
 
 # ---------------------------------------------------------------------------
@@ -139,6 +140,48 @@ class ApprovalAPITest(APITestCase):
         self.req = make_user_with_role('apprapi_req@test.com', 'REQUESTER', self.dept)
         self.fin = make_user_with_role('apprapi_fin@test.com', 'FINANCIAL_REVIEWER', self.dept)
         self.supplier = make_supplier()
+
+    def _decide(self, action, pr, actor=None):
+        self.client.force_authenticate(user=actor or self.budget_holder)
+        return self.client.post(f'/api/approvals/{action}/', {
+            'entity_type': 'PR', 'entity_id': str(pr.pk), 'comment': 'Decision.',
+        }, format='json')
+
+    def test_requester_is_told_their_requisition_was_approved(self):
+        """The person waiting on the outcome is the requester; notifying only
+        the next role in the chain leaves them with no idea what happened."""
+        pr = make_pr(self.req, self.dept, 'SUBMITTED')
+
+        self._decide('approve', pr)
+
+        note = Notification.objects.filter(recipient=self.req, entity_id=pr.pk).first()
+        self.assertIsNotNone(note, 'the requester was not notified of the outcome')
+        self.assertIn('APPROVED', note.message)
+
+    def test_requester_is_told_their_requisition_was_returned(self):
+        pr = make_pr(self.req, self.dept, 'SUBMITTED')
+
+        self._decide('return-entity', pr)
+
+        self.assertTrue(Notification.objects.filter(recipient=self.req, entity_id=pr.pk).exists())
+
+    def test_requester_is_told_their_requisition_was_rejected(self):
+        pr = make_pr(self.req, self.dept, 'SUBMITTED')
+
+        self._decide('reject', pr)
+
+        self.assertTrue(Notification.objects.filter(recipient=self.req, entity_id=pr.pk).exists())
+
+    def test_submitting_does_not_notify_the_requester_about_their_own_action(self):
+        pr = make_pr(self.req, self.dept, 'DRAFT')
+        self.client.force_authenticate(user=self.req)
+
+        self.client.post(f'/api/requisitions/{pr.pk}/submit/', {}, format='json')
+
+        self.assertFalse(
+            Notification.objects.filter(recipient=self.req, entity_id=pr.pk).exists(),
+            'a user should not be notified about a transition they performed',
+        )
 
     def test_approve_pr(self):
         pr = make_pr(self.req, self.dept, 'SUBMITTED')

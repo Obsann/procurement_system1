@@ -1,486 +1,318 @@
-"""
-End-to-End Procurement Lifecycle Test
-======================================
-This test simulates the COMPLETE procurement workflow from start to finish:
+"""End-to-end procurement lifecycle, driven entirely through the REST API.
 
-  1.  Create users with proper roles (Requester, Budget Holder,
-      Procurement Officer, Financial Reviewer, Warehouse Officer)
-  2.  Create a Purchase Requisition (DRAFT)
-  3.  Submit the PR (DRAFT → SUBMITTED)
-  4.  Approve the PR (SUBMITTED → APPROVED)
-  5.  Transition PR to PROCUREMENT_PROCESSING (APPROVED → PROCUREMENT_PROCESSING)
-  6.  Create an RFQ from the approved PR (DRAFT)
-  7.  Invite suppliers to the RFQ
-  8.  Send the RFQ (DRAFT → SENT)
-  9.  Receive bids from suppliers
-  10. Mark the RFQ as responded (SENT → RESPONDED)
-  11. Select a winning bid
-  12. Close the RFQ (RESPONDED → CLOSED)
-  13. Generate a Purchase Order from the winning bid (PO_CREATED)
-  14. Submit PO for financial review (PO_CREATED → FINANCIAL_REVIEW)
-  15. Financial Reviewer approves PO (FINANCIAL_REVIEW → FINANCIAL_APPROVED)
-  16. Submit PO for final approval (FINANCIAL_APPROVED → FINAL_APPROVAL)
-  17. Budget Holder gives final approval (FINAL_APPROVAL → PO_APPROVED)
-  18. Warehouse records goods receipt (PO_APPROVED → GOODS_RECEIVED)
-  19. Verify all Approval records exist for each action
-  20. Verify PO is in final GOODS_RECEIVED state
+Section 15.1 of the blueprint calls the MVP complete when the twenty-step
+procurement scenario runs "without manual database intervention". An earlier
+version of this file asserted that by calling WorkflowEngine.transition() and
+Model.objects.create() directly, which is exactly the manual intervention the
+criteria rule out: it passed while the API had no endpoint to move a purchase
+order out of FINANCIAL_APPROVED, so the workflow dead-ended in production and
+nothing caught it.
+
+Every step here therefore goes through a real endpoint, authenticated as the
+role that owns it. The state machine itself is unit tested in core/tests.py;
+this file exists to prove the product is reachable through its own API.
 
 Authored by: Obsan & Mary (joint) | Reviewed by: both
 """
 import datetime
-import uuid
-from django.test import TestCase
+
+from rest_framework import status
+from rest_framework.test import APITestCase
 
 from apps.accounts.models import User, Role, UserRole
-from apps.organizations.models import Organization, Department
-from apps.procurement.models import PurchaseRequisition, PurchaseRequisitionLine
-from apps.suppliers.models import Supplier, SupplierContact
-from apps.rfq.models import RFQ, RFQLine, RFQSupplier
-from apps.bids.models import Bid, BidLine
-from apps.orders.models import PurchaseOrder, PurchaseOrderLine
 from apps.approvals.models import Approval
+from apps.auditing.models import AuditLog
 from apps.financial_reviews.models import FinancialReview
-from apps.receiving.models import PreReceive, GoodsReceipt, GoodsReceiptLine
-from apps.core.workflow import WorkflowEngine
-from apps.core.exceptions import InvalidTransitionError
-
-
-def create_role(name):
-    role, _ = Role.objects.get_or_create(name=name)
-    return role
+from apps.notifications.models import Notification
+from apps.organizations.models import Organization, Department
+from apps.procurement.models import PurchaseRequisition
+from apps.suppliers.models import Supplier
 
 
 def create_user(email, role_name, dept=None):
     user = User.objects.create_user(
         email=email, password='Pass1234!',
         first_name=role_name.split('_')[0].capitalize(), last_name='User',
-        department=dept
+        department=dept,
     )
-    role = create_role(role_name)
+    role, _ = Role.objects.get_or_create(name=role_name)
     UserRole.objects.create(user=user, role=role)
     return user
 
 
-class FullProcurementLifecycleTest(TestCase):
-    """
-    Runs the complete procurement flow in a single test, asserting state
-    at each step to ensure the end-to-end business process is coherent.
-    """
+class FullProcurementLifecycleAPITest(APITestCase):
+    """Walks the blueprint's twenty-step scenario over HTTP."""
 
     def setUp(self):
-        # ---------------------------------------------------------------
-        # Step 0: Organizational setup
-        # ---------------------------------------------------------------
         self.org = Organization.objects.create(name='E2E Test Corp', code='E2E-CORP')
         self.dept = Department.objects.create(
             name='Operations', code='OPS-001', organization=self.org
         )
-
-        # ---------------------------------------------------------------
-        # Step 0: Create all role users
-        # ---------------------------------------------------------------
         self.requester = create_user('e2e_req@corp.com', 'REQUESTER', self.dept)
         self.budget_holder = create_user('e2e_bh@corp.com', 'BUDGET_HOLDER', self.dept)
         self.proc_officer = create_user('e2e_proc@corp.com', 'PROCUREMENT_OFFICER', self.dept)
         self.fin_reviewer = create_user('e2e_fin@corp.com', 'FINANCIAL_REVIEWER', self.dept)
         self.warehouse = create_user('e2e_wh@corp.com', 'WAREHOUSE_OFFICER', self.dept)
 
-        # ---------------------------------------------------------------
-        # Step 0: Create suppliers
-        # ---------------------------------------------------------------
         self.supplier_a = Supplier.objects.create(
-            legal_name='Alpha Supplies Ltd',
-            contact_person='Alice Johnson',
-            email='alice@alpha.com',
-            phone='+251911111111',
-            country='Ethiopia',
-            status='ACTIVE',
+            legal_name='Alpha Supplies Ltd', contact_person='Alice Johnson',
+            email='alice@alpha.com', phone='+251911111111', status='ACTIVE',
         )
-        SupplierContact.objects.create(
-            supplier=self.supplier_a, name='Alice Johnson',
-            email='alice@alpha.com', is_primary=True
-        )
-
         self.supplier_b = Supplier.objects.create(
-            legal_name='Beta Trading Co',
-            contact_person='Bob Smith',
-            email='bob@beta.com',
-            phone='+251922222222',
-            status='ACTIVE',
+            legal_name='Beta Trading Co', contact_person='Bob Smith',
+            email='bob@beta.com', phone='+251922222222', status='ACTIVE',
         )
 
-    def test_full_procurement_lifecycle(self):
-        # ---------------------------------------------------------------
-        # Step 1: Create Purchase Requisition (DRAFT)
-        # ---------------------------------------------------------------
-        pr = PurchaseRequisition.objects.create(
-            requester=self.requester,
-            department=self.dept,
-            title='Office Equipment Procurement',
-            description='Purchasing laptops and accessories for the team',
-            currency='USD',
-            status='DRAFT',
-        )
-        line1 = PurchaseRequisitionLine.objects.create(
-            purchase_requisition=pr,
-            item_name='Laptop Dell XPS',
-            quantity='5.00',
-            estimated_unit_price='1200.00',
-            unit_of_measure='PCS',
-        )
-        line2 = PurchaseRequisitionLine.objects.create(
-            purchase_requisition=pr,
-            item_name='USB-C Hub',
-            quantity='10.00',
-            estimated_unit_price='45.00',
-            unit_of_measure='PCS',
-        )
-        self.assertEqual(pr.status, 'DRAFT')
-        self.assertTrue(pr.pr_number.startswith('PR-'))
-        self.assertEqual(pr.total_estimated_amount, 6450.00)  # 5*1200 + 10*45
+    def post(self, url, payload=None, *, as_user):
+        self.client.force_authenticate(user=as_user)
+        return self.client.post(url, payload or {}, format='json')
 
-        # ---------------------------------------------------------------
-        # Step 2: Requester submits the PR (DRAFT → SUBMITTED)
-        # ---------------------------------------------------------------
-        WorkflowEngine.transition('PR', pr, 'submit', 'REQUESTER')
-        pr.refresh_from_db()
-        self.assertEqual(pr.status, 'SUBMITTED')
+    def get(self, url, *, as_user):
+        self.client.force_authenticate(user=as_user)
+        return self.client.get(url)
 
-        # ---------------------------------------------------------------
-        # Step 3: Budget Holder approves the PR (SUBMITTED → APPROVED)
-        # ---------------------------------------------------------------
-        approval_pr = Approval.objects.create(
-            entity_type='PR',
-            entity_id=pr.pk,
-            approver=self.budget_holder,
-            role='BUDGET_HOLDER',
-            action='APPROVE',
-            previous_status='SUBMITTED',
-            new_status='APPROVED',
-        )
-        WorkflowEngine.transition('PR', pr, 'approve', 'BUDGET_HOLDER')
-        pr.refresh_from_db()
-        self.assertEqual(pr.status, 'APPROVED')
-        self.assertEqual(Approval.objects.filter(entity_id=pr.pk).count(), 1)
+    def test_full_procurement_lifecycle_through_the_api(self):
+        deadline = datetime.date.today() + datetime.timedelta(days=14)
 
-        # ---------------------------------------------------------------
-        # Step 4: Procurement Officer starts processing the PR
-        # ---------------------------------------------------------------
-        WorkflowEngine.transition('PR', pr, 'process', 'PROCUREMENT_OFFICER')
-        pr.refresh_from_db()
-        self.assertEqual(pr.status, 'PROCUREMENT_PROCESSING')
+        # Steps 2-3: the requester raises a requisition with line items.
+        resp = self.post('/api/requisitions/', {
+            'department': str(self.dept.pk),
+            'title': 'Office Equipment Procurement',
+            'description': 'Laptops and accessories for the team',
+            'required_delivery_date': str(deadline),
+            'lines': [
+                {'item_name': 'Laptop', 'description': '16GB RAM',
+                 'quantity': '2', 'estimated_unit_price': '1500.00'},
+                {'item_name': 'Docking station', 'description': 'USB-C',
+                 'quantity': '2', 'estimated_unit_price': '250.00'},
+            ],
+        }, as_user=self.requester)
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED, resp.data)
+        pr_id = resp.data['id']
+        self.assertEqual(len(resp.data['lines']), 2)
 
-        # ---------------------------------------------------------------
-        # Step 5: Procurement Officer creates an RFQ
-        # ---------------------------------------------------------------
-        rfq = RFQ.objects.create(
-            purchase_requisition=pr,
-            title='RFQ for Office Equipment',
-            description='Please quote for laptops and USB hubs',
-            submission_deadline=datetime.date.today() + datetime.timedelta(days=14),
-            instructions='Include warranty terms with your quotation.',
-            status='DRAFT',
-            created_by=self.proc_officer,
-        )
-        rfq_line1 = RFQLine.objects.create(
-            rfq=rfq, pr_line=line1, item_name='Laptop Dell XPS', quantity='5.00'
-        )
-        rfq_line2 = RFQLine.objects.create(
-            rfq=rfq, pr_line=line2, item_name='USB-C Hub', quantity='10.00'
-        )
-        self.assertEqual(rfq.status, 'DRAFT')
-        self.assertTrue(rfq.rfq_number.startswith('RFQ-'))
+        # Step 4: submission.
+        resp = self.post(f'/api/requisitions/{pr_id}/submit/', as_user=self.requester)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK, resp.data)
+        self.assertEqual(resp.data['status'], 'SUBMITTED')
 
-        # ---------------------------------------------------------------
-        # Step 6: Invite suppliers to the RFQ
-        # ---------------------------------------------------------------
-        rfq_supplier_a = RFQSupplier.objects.create(rfq=rfq, supplier=self.supplier_a)
-        rfq_supplier_b = RFQSupplier.objects.create(rfq=rfq, supplier=self.supplier_b)
-        self.assertEqual(rfq.invited_suppliers.count(), 2)
+        # Step 5: it reaches the approver's queue.
+        resp = self.get('/api/requisitions/?status=SUBMITTED', as_user=self.budget_holder)
+        self.assertIn(pr_id, [row['id'] for row in resp.data['results']])
 
-        # ---------------------------------------------------------------
-        # Step 7: Send the RFQ (DRAFT → SENT)
-        # ---------------------------------------------------------------
-        WorkflowEngine.transition('RFQ', rfq, 'send', 'PROCUREMENT_OFFICER')
-        rfq.refresh_from_db()
-        self.assertEqual(rfq.status, 'SENT')
+        # Step 6: approval.
+        resp = self.post('/api/approvals/approve/', {
+            'entity_type': 'PR', 'entity_id': pr_id, 'comment': 'Within budget.',
+        }, as_user=self.budget_holder)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK, resp.data)
+        self.assertEqual(resp.data['new_status'], 'APPROVED')
 
-        # ---------------------------------------------------------------
-        # Step 8: Receive bids from two suppliers
-        # ---------------------------------------------------------------
-        bid_a = Bid.objects.create(
-            rfq=rfq, supplier=self.supplier_a, bid_date=datetime.date.today(),
-            expiry_date=datetime.date.today() + datetime.timedelta(days=30),
-            freight_cost='150.00', insurance_cost='50.00', tax_amount='0.00',
-            grand_total='6700.00',
-            notes='Includes 1-year warranty',
-            submitted_by=self.proc_officer,
-        )
-        BidLine.objects.create(
-            bid=bid_a, rfq_line=rfq_line1,
-            quantity_offered='5.00', unit_price='1230.00', total_price='6150.00'
-        )
-        BidLine.objects.create(
-            bid=bid_a, rfq_line=rfq_line2,
-            quantity_offered='10.00', unit_price='35.00', total_price='350.00'
-        )
+        # Step 7: procurement picks it up.
+        resp = self.get('/api/requisitions/?status=APPROVED', as_user=self.proc_officer)
+        self.assertIn(pr_id, [row['id'] for row in resp.data['results']])
 
-        bid_b = Bid.objects.create(
-            rfq=rfq, supplier=self.supplier_b, bid_date=datetime.date.today(),
-            freight_cost='200.00', insurance_cost='80.00', tax_amount='0.00',
-            grand_total='7080.00',
-            submitted_by=self.proc_officer,
-        )
-        BidLine.objects.create(
-            bid=bid_b, rfq_line=rfq_line1,
-            quantity_offered='5.00', unit_price='1280.00', total_price='6400.00'
-        )
-        BidLine.objects.create(
-            bid=bid_b, rfq_line=rfq_line2,
-            quantity_offered='10.00', unit_price='40.00', total_price='400.00'
-        )
+        # Step 8: an RFQ with lines, sent to two suppliers.
+        resp = self.post('/api/rfqs/', {
+            'purchase_requisition': pr_id,
+            'title': 'RFQ for office equipment',
+            'description': 'Please quote your best price',
+            'submission_deadline': str(deadline),
+            'supplier_ids': [str(self.supplier_a.pk), str(self.supplier_b.pk)],
+            'lines': [
+                {'item_name': 'Laptop', 'quantity': '2'},
+                {'item_name': 'Docking station', 'quantity': '2'},
+            ],
+        }, as_user=self.proc_officer)
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED, resp.data)
+        rfq_id = resp.data['id']
+        rfq_lines = resp.data['lines']
+        self.assertEqual(len(rfq_lines), 2)
+        self.assertEqual(len(resp.data['invited_suppliers']), 2)
 
-        self.assertEqual(rfq.bids.count(), 2)
+        resp = self.post(f'/api/rfqs/{rfq_id}/send/', as_user=self.proc_officer)
+        self.assertEqual(resp.data['status'], 'SENT')
 
-        # ---------------------------------------------------------------
-        # Step 9: Mark RFQ as responded (SENT → RESPONDED)
-        # ---------------------------------------------------------------
-        rfq_supplier_a.responded = True
-        rfq_supplier_a.save()
-        rfq_supplier_b.responded = True
-        rfq_supplier_b.save()
+        # Step 9: BR-06 needs quotations from two distinct suppliers.
+        bid_ids = []
+        for supplier, unit_price, total in (
+            (self.supplier_a, '1450.00', '3400.00'),
+            (self.supplier_b, '1600.00', '3700.00'),
+        ):
+            resp = self.post('/api/bids/', {
+                'rfq': rfq_id,
+                'supplier': str(supplier.pk),
+                'bid_date': str(datetime.date.today()),
+                'lead_time_days': 14,
+                'grand_total': total,
+                'lines': [
+                    {'rfq_line': rfq_lines[0]['id'], 'quantity_offered': '2',
+                     'unit_price': unit_price, 'total_price': '2900.00'},
+                    {'rfq_line': rfq_lines[1]['id'], 'quantity_offered': '2',
+                     'unit_price': '250.00', 'total_price': '500.00'},
+                ],
+            }, as_user=self.proc_officer)
+            self.assertEqual(resp.status_code, status.HTTP_201_CREATED, resp.data)
+            self.assertEqual(len(resp.data['lines']), 2)
+            bid_ids.append(resp.data['id'])
 
-        WorkflowEngine.transition('RFQ', rfq, 'respond', 'PROCUREMENT_OFFICER')
-        rfq.refresh_from_db()
-        self.assertEqual(rfq.status, 'RESPONDED')
+        # Step 10: the bids can be compared side by side.
+        resp = self.get(f'/api/bids/?rfq={rfq_id}', as_user=self.proc_officer)
+        self.assertEqual(resp.data['count'], 2)
 
-        # ---------------------------------------------------------------
-        # Step 10: Select winning bid (Alpha Supplies — lower price)
-        # ---------------------------------------------------------------
-        Bid.objects.filter(rfq=rfq, is_winner=True).update(is_winner=False)
-        bid_a.is_winner = True
-        bid_a.save()
+        # Step 11: award to the cheaper supplier.
+        resp = self.post(f'/api/bids/{bid_ids[0]}/select_winner/', as_user=self.proc_officer)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK, resp.data)
+        self.assertTrue(resp.data['bid']['is_winner'])
 
-        self.assertTrue(Bid.objects.get(pk=bid_a.pk).is_winner)
-        self.assertFalse(Bid.objects.get(pk=bid_b.pk).is_winner)
+        # Step 12: the purchase order.
+        resp = self.post('/api/purchase-orders/generate-from-bid/',
+                         {'bid_id': bid_ids[0]}, as_user=self.proc_officer)
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED, resp.data)
+        po_id = resp.data['id']
+        self.assertTrue(resp.data['po_number'].startswith('PO-'))
+        self.assertEqual(len(resp.data['lines']), 2)
 
-        # ---------------------------------------------------------------
-        # Step 11: Close the RFQ (RESPONDED → CLOSED)
-        # ---------------------------------------------------------------
-        WorkflowEngine.transition('RFQ', rfq, 'close', 'PROCUREMENT_OFFICER')
-        rfq.refresh_from_db()
-        self.assertEqual(rfq.status, 'CLOSED')
+        resp = self.post(f'/api/purchase-orders/{po_id}/submit-for-review/',
+                         as_user=self.proc_officer)
+        self.assertEqual(resp.data['status'], 'FINANCIAL_REVIEW')
 
-        # ---------------------------------------------------------------
-        # Step 12: Generate Purchase Order from winning bid
-        # ---------------------------------------------------------------
-        po = PurchaseOrder.objects.create(
-            purchase_requisition=pr,
-            rfq=rfq,
-            winning_bid=bid_a,
-            supplier=self.supplier_a,
-            currency='USD',
-            subtotal='6500.00',
-            freight_cost='150.00',
-            insurance_cost='50.00',
-            tax_amount='0.00',
-            total_amount='6700.00',
-            payment_terms='Net 30',
-            delivery_method='Courier',
-            notes='Please include packing list',
-            created_by=self.proc_officer,
-        )
-        PurchaseOrderLine.objects.create(
-            purchase_order=po, item_name='Laptop Dell XPS',
-            quantity='5.00', unit_price='1230.00', total_price='6150.00'
-        )
-        PurchaseOrderLine.objects.create(
-            purchase_order=po, item_name='USB-C Hub',
-            quantity='10.00', unit_price='35.00', total_price='350.00'
-        )
+        # Step 13: it reaches the financial reviewer.
+        resp = self.get('/api/purchase-orders/?status=FINANCIAL_REVIEW', as_user=self.fin_reviewer)
+        self.assertIn(po_id, [row['id'] for row in resp.data['results']])
 
-        self.assertEqual(po.status, 'PO_CREATED')
-        self.assertTrue(po.po_number.startswith('PO-'))
-        self.assertEqual(po.lines.count(), 2)
+        # Step 14: financial approval.
+        resp = self.post('/api/financial-reviews/review/', {
+            'purchase_order': po_id, 'decision': 'APPROVED', 'comments': 'Funds available.',
+        }, as_user=self.fin_reviewer)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK, resp.data)
+        self.assertEqual(resp.data['new_status'], 'FINANCIAL_APPROVED')
 
-        # ---------------------------------------------------------------
-        # Step 13: Submit PO for financial review (PO_CREATED → FINANCIAL_REVIEW)
-        # ---------------------------------------------------------------
-        WorkflowEngine.transition('PO', po, 'submit_for_review', 'PROCUREMENT_OFFICER')
-        po.refresh_from_db()
-        self.assertEqual(po.status, 'FINANCIAL_REVIEW')
+        # Step 15: final approval, via the endpoint whose absence used to end
+        # the workflow here.
+        resp = self.post(f'/api/purchase-orders/{po_id}/submit-final/', as_user=self.proc_officer)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK, resp.data)
+        self.assertEqual(resp.data['status'], 'FINAL_APPROVAL')
 
-        # ---------------------------------------------------------------
-        # Step 14: Financial reviewer approves (FINANCIAL_REVIEW → FINANCIAL_APPROVED)
-        # ---------------------------------------------------------------
-        fin_review = FinancialReview.objects.create(
-            purchase_order=po,
-            reviewer=self.fin_reviewer,
-            decision='APPROVED',
-            comments='Budget is available. Approved.',
-            previous_status='FINANCIAL_REVIEW',
-            new_status='FINANCIAL_APPROVED',
-        )
-        WorkflowEngine.transition('PO', po, 'approve_financial', 'FINANCIAL_REVIEWER')
-        po.refresh_from_db()
-        self.assertEqual(po.status, 'FINANCIAL_APPROVED')
-        self.assertEqual(FinancialReview.objects.filter(purchase_order=po).count(), 1)
-        self.assertEqual(fin_review.decision, 'APPROVED')
+        resp = self.post('/api/approvals/approve/', {
+            'entity_type': 'PO', 'entity_id': po_id, 'comment': 'Approved for purchase.',
+        }, as_user=self.budget_holder)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK, resp.data)
+        self.assertEqual(resp.data['new_status'], 'PO_APPROVED')
 
-        # ---------------------------------------------------------------
-        # Step 15: Submit PO for final approval (FINANCIAL_APPROVED → FINAL_APPROVAL)
-        # ---------------------------------------------------------------
-        WorkflowEngine.transition('PO', po, 'submit_final', 'PROCUREMENT_OFFICER')
-        po.refresh_from_db()
-        self.assertEqual(po.status, 'FINAL_APPROVAL')
+        # Steps 16-17: goods receipt closes the order.
+        resp = self.get(f'/api/purchase-orders/{po_id}/', as_user=self.warehouse)
+        po_lines = resp.data['lines']
 
-        # ---------------------------------------------------------------
-        # Step 16: Budget Holder gives final approval (FINAL_APPROVAL → PO_APPROVED)
-        # ---------------------------------------------------------------
-        final_approval = Approval.objects.create(
-            entity_type='PO',
-            entity_id=po.pk,
-            approver=self.budget_holder,
-            role='BUDGET_HOLDER',
-            action='APPROVE',
-            previous_status='FINAL_APPROVAL',
-            new_status='PO_APPROVED',
-        )
-        WorkflowEngine.transition('PO', po, 'approve', 'BUDGET_HOLDER')
-        po.refresh_from_db()
-        self.assertEqual(po.status, 'PO_APPROVED')
+        resp = self.post('/api/goods-receipts/', {
+            'purchase_order': po_id,
+            'received_date': str(datetime.date.today()),
+            'status': 'COMPLETE',
+            'notes': 'All items received in good condition',
+            'lines': [
+                {'po_line': line['id'], 'expected_quantity': line['quantity'],
+                 'received_quantity': line['quantity']}
+                for line in po_lines
+            ],
+        }, as_user=self.warehouse)
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED, resp.data)
+        self.assertTrue(resp.data['grn_number'].startswith('GRN-'))
+        self.assertEqual(len(resp.data['lines']), 2)
 
-        # ---------------------------------------------------------------
-        # Step 17: Pre-receive setup
-        # ---------------------------------------------------------------
-        pre_receive = PreReceive.objects.create(
-            purchase_order=po,
-            expected_delivery_date=datetime.date.today() + datetime.timedelta(days=5),
-            notes='Expecting delivery in 5 days',
-            created_by=self.warehouse,
-        )
-        self.assertEqual(pre_receive.purchase_order, po)
+        resp = self.get(f'/api/purchase-orders/{po_id}/', as_user=self.warehouse)
+        self.assertEqual(resp.data['status'], 'GOODS_RECEIVED')
 
-        # ---------------------------------------------------------------
-        # Step 18: Warehouse records goods receipt (PO_APPROVED → GOODS_RECEIVED)
-        # ---------------------------------------------------------------
-        gr = GoodsReceipt.objects.create(
-            purchase_order=po,
-            received_by=self.warehouse,
-            received_date=datetime.date.today(),
-            status='COMPLETE',
-            notes='All items received in good condition',
-        )
-        for po_line in po.lines.all():
-            GoodsReceiptLine.objects.create(
-                goods_receipt=gr,
-                po_line=po_line,
-                expected_quantity=po_line.quantity,
-                received_quantity=po_line.quantity,
-                notes='Complete delivery',
-            )
-
-        WorkflowEngine.transition('PO', po, 'receive', 'WAREHOUSE_OFFICER')
-        po.refresh_from_db()
-        self.assertEqual(po.status, 'GOODS_RECEIVED')
-        self.assertTrue(gr.grn_number.startswith('GRN-'))
-        self.assertEqual(gr.lines.count(), 2)
-        self.assertEqual(gr.status, 'COMPLETE')
-
-        # ---------------------------------------------------------------
-        # Final Assertions — entire workflow completed successfully
-        # ---------------------------------------------------------------
-        self.assertEqual(pr.status, 'PROCUREMENT_PROCESSING')
-        self.assertEqual(rfq.status, 'CLOSED')
-        self.assertEqual(po.status, 'GOODS_RECEIVED')
-
-        # Verify approval records
-        pr_approvals = Approval.objects.filter(entity_id=pr.pk)
-        po_approvals = Approval.objects.filter(entity_id=po.pk)
-        self.assertEqual(pr_approvals.count(), 1)  # PR approve
-        self.assertEqual(po_approvals.count(), 1)  # PO final approve
-
-        # Verify financial review record
-        self.assertEqual(FinancialReview.objects.filter(purchase_order=po, decision='APPROVED').count(), 1)
-
-        # Verify GRN lines match PO lines
+        # Step 18: the history is readable through the API.
+        resp = self.get(f'/api/approvals/?entity_type=PR&entity_id={pr_id}', as_user=self.requester)
+        self.assertEqual(resp.data['count'], 1)
+        self.assertEqual(resp.data['results'][0]['action'], 'APPROVE')
+        self.assertEqual(Approval.objects.filter(entity_id=po_id).count(), 1)
         self.assertEqual(
-            GoodsReceiptLine.objects.filter(goods_receipt=gr).count(),
-            po.lines.count()
+            FinancialReview.objects.filter(purchase_order_id=po_id, decision='APPROVED').count(), 1
         )
 
+        # Step 19: every transition is auditable.
+        resp = self.get('/api/audit-logs/', as_user=self.budget_holder)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(
+            AuditLog.objects.filter(action='WORKFLOW_TRANSITION', entity_id=po_id).count(), 4
+        )
 
-class WorkflowRejectionAndReturnCycleTest(TestCase):
-    """
-    Tests the rejection and return cycles — ensuring the system handles
-    unhappy paths correctly and state integrity is maintained.
-    """
+        # Step 20: both directions of notification — forward to whoever acts
+        # next, and back to whoever raised the record.
+        resp = self.get('/api/notifications/', as_user=self.requester)
+        self.assertGreater(resp.data['count'], 0,
+                           'the requester was never told the outcome of their own request')
+        self.assertTrue(Notification.objects.filter(recipient=self.warehouse).exists())
+
+        pr = PurchaseRequisition.objects.get(pk=pr_id)
+        self.assertEqual(pr.status, 'APPROVED')
+
+
+class WorkflowUnhappyPathAPITest(APITestCase):
+    """Return and rejection cycles, also through the API."""
 
     def setUp(self):
         self.org = Organization.objects.create(name='Rejection Corp', code='REJ-CORP')
-        self.dept = Department.objects.create(name='Procurement', code='REJ-PROC', organization=self.org)
+        self.dept = Department.objects.create(
+            name='Procurement', code='REJ-PROC', organization=self.org
+        )
         self.requester = create_user('rej_req@corp.com', 'REQUESTER', self.dept)
         self.budget_holder = create_user('rej_bh@corp.com', 'BUDGET_HOLDER', self.dept)
-        self.proc_officer = create_user('rej_proc@corp.com', 'PROCUREMENT_OFFICER', self.dept)
 
-    def test_pr_return_and_resubmit_cycle(self):
-        pr = PurchaseRequisition.objects.create(
+    def _draft(self, title='Unhappy path PR'):
+        return PurchaseRequisition.objects.create(
             requester=self.requester, department=self.dept,
-            title='Return Cycle PR', description='Test', status='DRAFT'
+            title=title, description='Test', status='DRAFT',
         )
-        # Submit
-        WorkflowEngine.transition('PR', pr, 'submit', 'REQUESTER')
-        self.assertEqual(pr.status, 'SUBMITTED')
-        # Budget holder returns
-        WorkflowEngine.transition('PR', pr, 'return', 'BUDGET_HOLDER')
-        self.assertEqual(pr.status, 'RETURNED')
-        # Requester revises and resubmits
-        pr.description = 'Revised description with more details'
-        pr.save()
-        WorkflowEngine.transition('PR', pr, 'submit', 'REQUESTER')
-        self.assertEqual(pr.status, 'SUBMITTED')
-        # Budget holder approves
-        WorkflowEngine.transition('PR', pr, 'approve', 'BUDGET_HOLDER')
-        self.assertEqual(pr.status, 'APPROVED')
 
-    def test_pr_rejection_is_terminal(self):
-        pr = PurchaseRequisition.objects.create(
-            requester=self.requester, department=self.dept,
-            title='Rejected PR', description='Test', status='SUBMITTED'
-        )
-        WorkflowEngine.transition('PR', pr, 'reject', 'BUDGET_HOLDER')
+    def _decide(self, action, pr_id, comment='See comments.'):
+        self.client.force_authenticate(user=self.budget_holder)
+        return self.client.post(f'/api/approvals/{action}/', {
+            'entity_type': 'PR', 'entity_id': str(pr_id), 'comment': comment,
+        }, format='json')
+
+    def test_returned_requisition_can_be_revised_and_resubmitted(self):
+        pr = self._draft()
+        self.client.force_authenticate(user=self.requester)
+        self.client.post(f'/api/requisitions/{pr.pk}/submit/', {}, format='json')
+
+        resp = self._decide('return-entity', pr.pk, 'Please add a second quote.')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK, resp.data)
+        self.assertEqual(resp.data['new_status'], 'RETURNED')
+
+        self.client.force_authenticate(user=self.requester)
+        resp = self.client.patch(f'/api/requisitions/{pr.pk}/',
+                                 {'description': 'Revised with detail'}, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK, resp.data)
+        resp = self.client.post(f'/api/requisitions/{pr.pk}/submit/', {}, format='json')
+        self.assertEqual(resp.data['status'], 'SUBMITTED')
+
+        resp = self._decide('approve', pr.pk)
+        self.assertEqual(resp.data['new_status'], 'APPROVED')
+
+    def test_rejection_is_terminal(self):
+        pr = self._draft('Rejected PR')
+        self.client.force_authenticate(user=self.requester)
+        self.client.post(f'/api/requisitions/{pr.pk}/submit/', {}, format='json')
+
+        resp = self._decide('reject', pr.pk, 'Not needed this year.')
+        self.assertEqual(resp.data['new_status'], 'REJECTED')
+
+        self.client.force_authenticate(user=self.requester)
+        resp = self.client.post(f'/api/requisitions/{pr.pk}/submit/', {}, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        pr.refresh_from_db()
         self.assertEqual(pr.status, 'REJECTED')
-        # Cannot submit from REJECTED
-        with self.assertRaises(InvalidTransitionError):
-            WorkflowEngine.transition('PR', pr, 'submit', 'REQUESTER')
 
-    def test_po_returned_from_financial_review(self):
-        supplier = Supplier.objects.create(
-            legal_name='Return Supplier', contact_person='Rep',
-            email='retsup@corp.com', phone='+25100000001'
-        )
-        pr = PurchaseRequisition.objects.create(
-            requester=self.requester, department=self.dept,
-            title='Return PO PR', description='Test', status='PROCUREMENT_PROCESSING'
-        )
-        rfq = RFQ.objects.create(
-            purchase_requisition=pr, title='RFQ',
-            submission_deadline=datetime.date.today() + datetime.timedelta(days=7),
-            status='CLOSED', created_by=self.proc_officer,
-        )
-        bid = Bid.objects.create(
-            rfq=rfq, supplier=supplier, bid_date=datetime.date.today(),
-            grand_total='5000.00', is_winner=True, submitted_by=self.proc_officer
-        )
-        po = PurchaseOrder.objects.create(
-            purchase_requisition=pr, rfq=rfq, winning_bid=bid,
-            supplier=supplier, subtotal='4700.00', freight_cost='200.00',
-            insurance_cost='100.00', tax_amount='0.00', total_amount='5000.00',
-            created_by=self.proc_officer, status='FINANCIAL_REVIEW',
-        )
-        # Financial reviewer returns PO
-        WorkflowEngine.transition('PO', po, 'return', 'FINANCIAL_REVIEWER')
-        self.assertEqual(po.status, 'PO_CREATED')
-        # Procurement officer can resubmit for review
-        WorkflowEngine.transition('PO', po, 'submit_for_review', 'PROCUREMENT_OFFICER')
-        self.assertEqual(po.status, 'FINANCIAL_REVIEW')
+    def test_requester_cannot_approve_their_own_requisition(self):
+        pr = self._draft('Self approval attempt')
+        self.client.force_authenticate(user=self.requester)
+        self.client.post(f'/api/requisitions/{pr.pk}/submit/', {}, format='json')
+
+        resp = self.client.post('/api/approvals/approve/', {
+            'entity_type': 'PR', 'entity_id': str(pr.pk),
+        }, format='json')
+
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        pr.refresh_from_db()
+        self.assertEqual(pr.status, 'SUBMITTED')

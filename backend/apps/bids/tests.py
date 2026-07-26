@@ -225,6 +225,20 @@ class BidAPITest(APITestCase):
         self.assertEqual(resp.data['grand_total'], '9500.00')
         self.assertFalse(resp.data['is_winner'])
 
+    def test_bids_can_be_filtered_to_one_rfq(self):
+        """Bid comparison is per RFQ, so an unfiltered list is the wrong answer."""
+        make_bid(self.rfq, self.supplier, '3500.00', self.proc)
+        other_pr = make_pr(self.req, self.dept)
+        other_rfq = make_rfq(other_pr, self.proc)
+        make_bid(other_rfq, self.supplier, '9999.00', self.proc)
+        self.client.force_authenticate(user=self.proc)
+
+        resp = self.client.get(f'{self.list_url}?rfq={self.rfq.pk}')
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data['count'], 1)
+        self.assertEqual(str(resp.data['results'][0]['rfq']), str(self.rfq.pk))
+
     def test_create_bid_with_priced_lines(self):
         """A quotation is the line prices; posting a bid without them is not a
         realistic path, so nested creation has to work."""

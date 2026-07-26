@@ -18,6 +18,9 @@ class BidViewSet(viewsets.ModelViewSet):
     serializer_class = BidSerializer
     permission_classes = [IsProcurementOfficer]
     http_method_names = ['get', 'post'] # Only allow viewing and creating bids initially
+    # Comparing quotations means looking at one RFQ's bids side by side; without
+    # this, ?rfq= was silently ignored and every bid in the system came back.
+    filterset_fields = ['rfq', 'supplier', 'is_winner']
 
     @action(detail=True, methods=['post'], url_path='select_winner')
     @transaction.atomic

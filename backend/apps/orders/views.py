@@ -62,3 +62,15 @@ class PurchaseOrderViewSet(viewsets.ModelViewSet):
         po.submitted_at = timezone.now()
         po.save()
         return Response({'status': next_status, 'message': 'PO submitted for financial review.'})
+
+    @action(detail=True, methods=['post'], url_path='submit-final')
+    def submit_final(self, request, pk=None):
+        """Hand a financially approved PO to the budget holder for sign-off.
+
+        The workflow engine has always defined this transition, but nothing
+        exposed it, so purchase orders stopped dead at FINANCIAL_APPROVED and
+        could never be approved or received.
+        """
+        po = self.get_object()
+        next_status, _ = WorkflowEngine.transition_for_user('PO', po, 'submit_final', request.user)
+        return Response({'status': next_status, 'message': 'PO submitted for final approval.'})

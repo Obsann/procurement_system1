@@ -212,9 +212,9 @@ def main():
 
     # 15. Final approval by the budget holder.
     status, data = call('POST', f'/purchase-orders/{po_id}/submit-final/', tokens['procurement'])
-    if status == 404:
+    if status != 200:
         step('The Purchase Order receives final approval', False,
-             'no endpoint moves a PO from FINANCIAL_APPROVED to FINAL_APPROVAL')
+             f'cannot reach FINAL_APPROVAL: {data}')
     else:
         status, data = call('POST', '/approvals/approve/', tokens['budget'],
                             {'entity_type': 'PO', 'entity_id': po_id, 'comment': 'Approved.'})

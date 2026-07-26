@@ -44,10 +44,17 @@ class PurchaseRequisitionSerializer(serializers.ModelSerializer):
                 PurchaseRequisitionLine.objects.create(purchase_requisition=pr, **line_data)
         return pr
 
+    # BR-03: locked after submission "unless it is returned for correction",
+    # so a returned requisition has to be editable or the return path is a
+    # dead end and the requester can only resubmit the same document.
+    EDITABLE_STATUSES = ('DRAFT', 'RETURNED')
+
     def update(self, instance, validated_data):
         lines_data = validated_data.pop('lines', None)
-        if instance.status != 'DRAFT':
-            raise serializers.ValidationError('Only draft requisitions can be edited.')
+        if instance.status not in self.EDITABLE_STATUSES:
+            raise serializers.ValidationError(
+                'Only draft or returned requisitions can be edited.'
+            )
         with transaction.atomic():
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)

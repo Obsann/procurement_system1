@@ -298,3 +298,54 @@ class PurchaseOrderAPITest(APITestCase):
         resp = self.client.post(url, {}, format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data['status'], 'FINANCIAL_REVIEW')
+
+    def test_submit_po_for_final_approval(self):
+        """Without this the workflow dead-ends: a financially approved PO has
+        no route to the budget holder and can never be received."""
+        po = make_po(self.pr, self.rfq, self.bid, self.supplier, self.proc)
+        po.status = 'FINANCIAL_APPROVED'
+        po.save()
+        self.client.force_authenticate(user=self.proc)
+
+        resp = self.client.post(f'{self.list_url}{po.pk}/submit-final/', {}, format='json')
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK, resp.data)
+        self.assertEqual(resp.data['status'], 'FINAL_APPROVAL')
+        po.refresh_from_db()
+        self.assertEqual(po.status, 'FINAL_APPROVAL')
+
+    def test_submit_final_rejects_a_po_that_skipped_financial_review(self):
+        po = make_po(self.pr, self.rfq, self.bid, self.supplier, self.proc)
+        self.client.force_authenticate(user=self.proc)
+
+        resp = self.client.post(f'{self.list_url}{po.pk}/submit-final/', {}, format='json')
+
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        po.refresh_from_db()
+        self.assertEqual(po.status, 'PO_CREATED')
+
+    def test_submit_final_is_closed_to_other_roles(self):
+        po = make_po(self.pr, self.rfq, self.bid, self.supplier, self.proc)
+        po.status = 'FINANCIAL_APPROVED'
+        po.save()
+        self.client.force_authenticate(user=self.req)
+
+        resp = self.client.post(f'{self.list_url}{po.pk}/submit-final/', {}, format='json')
+
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        po.refresh_from_db()
+        self.assertEqual(po.status, 'FINANCIAL_APPROVED')
+
+    def test_submit_final_notifies_the_budget_holder(self):
+        budget_holder = make_user_with_role('po_final_bh@test.com', 'BUDGET_HOLDER', self.dept)
+        po = make_po(self.pr, self.rfq, self.bid, self.supplier, self.proc)
+        po.status = 'FINANCIAL_APPROVED'
+        po.save()
+        self.client.force_authenticate(user=self.proc)
+
+        self.client.post(f'{self.list_url}{po.pk}/submit-final/', {}, format='json')
+
+        from apps.notifications.models import Notification
+        self.assertTrue(
+            Notification.objects.filter(recipient=budget_holder, entity_id=po.pk).exists()
+        )

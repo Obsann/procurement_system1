@@ -7,7 +7,7 @@ export const toNumber = (value: string | number | null | undefined): number => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
-export const formatMoney = (value: string | number | null | undefined, currency = 'USD'): string =>
+export const formatMoney = (value: string | number | null | undefined, currency = 'ETB'): string =>
   new Intl.NumberFormat(undefined, {
     style: 'currency',
     currency,

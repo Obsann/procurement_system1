@@ -8,7 +8,7 @@ import { Bell } from 'lucide-react';
 import { useGetNotificationsQuery, useMarkReadMutation, useMarkAllReadMutation } from '../../store/api/notificationsApi';
 import { formatDateTime } from '../../lib/format';
 import { Notification } from '../../types';
-import { useToast } from '../../components/ui/useToast';
+import { useToast } from '../../components/ui';
 import { apiErrorMessage } from '../../lib/apiError';
 
 export const NotificationsPage: React.FC = () => {
@@ -76,7 +76,7 @@ export const NotificationsPage: React.FC = () => {
         </div>
       ) : !data?.results.length ? (
         <EmptyState
-          icon={Bell}
+          icon={<Bell className="h-10 w-10" />}
           title="No notifications"
           description="You don't have any notifications yet."
         />

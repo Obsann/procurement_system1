@@ -64,28 +64,24 @@ export const DashboardPage: React.FC = () => {
         <>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <KPICard
-              title="Total Requisitions"
+              label="Total Requisitions"
               value={stats.total_requisitions.toString()}
-              icon={FileText}
-              iconClassName="text-accent-indigo"
+              icon={<FileText />}
             />
             <KPICard
-              title="Pending Approvals"
+              label="Pending Approvals"
               value={stats.pending_approvals.toString()}
-              icon={Clock}
-              iconClassName="text-amber-500"
+              icon={<Clock />}
             />
             <KPICard
-              title="Active POs"
+              label="Active POs"
               value={stats.total_purchase_orders.toString()}
-              icon={Package}
-              iconClassName="text-blue-500"
+              icon={<Package />}
             />
             <KPICard
-              title="Goods Received"
+              label="Goods Received"
               value={stats.total_goods_receipts.toString()}
-              icon={CheckCircle}
-              iconClassName="text-emerald-500"
+              icon={<CheckCircle />}
             />
           </div>
 
@@ -93,8 +89,8 @@ export const DashboardPage: React.FC = () => {
             <Card className="border-border-default">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-lg font-medium text-text-primary">Recent Requisitions</CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => navigate('/requisitions')} icon={ArrowRight} iconPosition="right">
-                  View All
+                <Button variant="ghost" size="sm" onClick={() => navigate('/requisitions')}>
+                  View All <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               </CardHeader>
               <CardContent className="px-0 pb-0">
@@ -106,8 +102,8 @@ export const DashboardPage: React.FC = () => {
                   columns={[
                     { key: 'pr_number', label: 'PR Number' },
                     { key: 'title', label: 'Title' },
-                    { key: 'status', label: 'Status', render: (val) => <StatusBadge status={val} /> },
-                    { key: 'created_at', label: 'Date', render: (val) => formatDate(val) },
+                    { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+                    { key: 'created_at', label: 'Date', render: (row) => formatDate(row.created_at) },
                   ]}
                 />
               </CardContent>
@@ -116,8 +112,8 @@ export const DashboardPage: React.FC = () => {
             <Card className="border-border-default">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-lg font-medium text-text-primary">Recent Purchase Orders</CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => navigate('/purchase-orders')} icon={ArrowRight} iconPosition="right">
-                  View All
+                <Button variant="ghost" size="sm" onClick={() => navigate('/purchase-orders')}>
+                  View All <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               </CardHeader>
               <CardContent className="px-0 pb-0">
@@ -128,9 +124,9 @@ export const DashboardPage: React.FC = () => {
                   emptyMessage="No recent purchase orders"
                   columns={[
                     { key: 'po_number', label: 'PO Number' },
-                    { key: 'total_amount', label: 'Amount', render: (val) => formatMoney(val) },
-                    { key: 'status', label: 'Status', render: (val) => <StatusBadge status={val} /> },
-                    { key: 'created_at', label: 'Date', render: (val) => formatDate(val) },
+                    { key: 'total_amount', label: 'Amount', render: (row) => formatMoney(row.total_amount) },
+                    { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+                    { key: 'created_at', label: 'Date', render: (row) => formatDate(row.created_at) },
                   ]}
                 />
               </CardContent>

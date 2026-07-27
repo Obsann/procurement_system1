@@ -1,0 +1,48 @@
+services:
+  # ── Django API ──────────────────────────────────────────────────────────────
+  - type: web
+    name: procuresync-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput --settings=config.settings.production && python manage.py migrate --settings=config.settings.production
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.production
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_ALLOWED_HOSTS
+        value: procuresync-api.onrender.com
+      - key: DJANGO_CORS_ALLOWED_ORIGINS
+        value: https://procuresync.vercel.app
+      - key: POSTGRES_DB
+        fromDatabase:
+          name: procuresync-db
+          property: database
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: procuresync-db
+          property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: procuresync-db
+          property: password
+      - key: POSTGRES_HOST
+        fromDatabase:
+          name: procuresync-db
+          property: host
+      - key: POSTGRES_PORT
+        fromDatabase:
+          name: procuresync-db
+          property: port
+      - key: DJANGO_SECURE_COOKIES
+        value: "True"
+      # Optional: set USE_S3=True and add AWS_* vars to enable persistent file uploads
+      - key: USE_S3
+        value: "False"
+
+databases:
+  - name: procuresync-db
+    databaseName: procurement_db
+    user: procurement_user
+    plan: free

@@ -26,6 +26,7 @@ import {
   requisitionSchema,
   type RequisitionFormValues,
 } from './requisitionSchema';
+import { isEditable } from './editability';
 
 export const RequisitionFormPage: React.FC = () => {
   const navigate = useNavigate();
@@ -160,13 +161,14 @@ export const RequisitionFormPage: React.FC = () => {
     return <div className="h-64 animate-pulse rounded-xl bg-bg-surface" />;
   }
 
-  if (isEdit && existing && existing.status !== 'DRAFT') {
+  if (isEdit && existing && !isEditable(existing.status)) {
     return (
       <div className="space-y-6">
         <PageHeader title={existing.pr_number} description={existing.title} />
         <Card className="p-8 text-center">
           <p className="mb-4 text-text-secondary">
-            Only draft requisitions can be edited. This one is {existing.status.toLowerCase()}.
+            Only draft or returned requisitions can be edited. This one is{' '}
+            {existing.status.toLowerCase()}.
           </p>
           <Button variant="secondary" onClick={() => navigate(`/requisitions/${existing.id}`)}>
             View requisition

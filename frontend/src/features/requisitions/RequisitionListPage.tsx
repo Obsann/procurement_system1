@@ -20,6 +20,7 @@ import {
 } from '../../store/api/requisitionsApi';
 import { formatDate, formatMoney } from '../../lib/format';
 import { apiErrorMessage } from '../../lib/apiError';
+import { isDeletable, isEditable } from './editability';
 import { type PRStatus, type PurchaseRequisition } from '../../types';
 
 const statusOptions = [
@@ -126,7 +127,7 @@ export const RequisitionListPage: React.FC = () => {
           >
             View
           </Button>
-          {row.status === 'DRAFT' && (
+          {isEditable(row.status) && (
             <>
               <Button
                 variant="ghost"
@@ -145,14 +146,16 @@ export const RequisitionListPage: React.FC = () => {
               >
                 Submit
               </Button>
-              <Button
-                variant="danger"
-                size="sm"
-                aria-label={`Delete ${row.pr_number}`}
-                icon={<Trash2 className="h-3.5 w-3.5" />}
-                onClick={() => setPendingDelete(row)}
-              />
             </>
+          )}
+          {isDeletable(row.status) && (
+            <Button
+              variant="danger"
+              size="sm"
+              aria-label={`Delete ${row.pr_number}`}
+              icon={<Trash2 className="h-3.5 w-3.5" />}
+              onClick={() => setPendingDelete(row)}
+            />
           )}
         </div>
       ),

@@ -11,6 +11,26 @@ import { RequisitionDetailPage } from './features/requisitions/RequisitionDetail
 import { ApprovalQueuePage } from './features/approvals/ApprovalQueuePage';
 import { RequisitionReviewPage } from './features/approvals/RequisitionReviewPage';
 import { OrderReviewPage } from './features/approvals/OrderReviewPage';
+import { RFQListPage } from './features/rfqs/RFQListPage';
+import { RFQFormPage } from './features/rfqs/RFQFormPage';
+import { RFQDetailPage } from './features/rfqs/RFQDetailPage';
+import { BidListPage } from './features/rfqs/BidListPage';
+// Suppliers
+import { SupplierListPage } from './features/suppliers/SupplierListPage';
+import { SupplierFormPage } from './features/suppliers/SupplierFormPage';
+// Purchase Orders
+import { PurchaseOrderListPage } from './features/orders/PurchaseOrderListPage';
+import { PurchaseOrderDetailPage } from './features/orders/PurchaseOrderDetailPage';
+// Financial Review
+import { FinancialReviewListPage } from './features/financial/FinancialReviewListPage';
+import { FinancialReviewDetailPage } from './features/financial/FinancialReviewDetailPage';
+// Goods Receipts
+import { GoodsReceiptListPage } from './features/receiving/GoodsReceiptListPage';
+import { GoodsReceiptFormPage } from './features/receiving/GoodsReceiptFormPage';
+// Notifications & Settings
+import { NotificationsPage } from './features/notifications/NotificationsPage';
+import { SettingsPage } from './features/settings/SettingsPage';
+// Audit Log (still a generic view — read-only is fine here)
 import { ResourceListPage } from './features/operations/ResourceListPage';
 import { ToastProvider } from './components/ui';
 import { navItems } from './components/layout/navigation';
@@ -29,6 +49,7 @@ const App: React.FC = () => (
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<DashboardPage />} />
 
+          {/* Requisitions */}
           <Route element={<RoleGuard allow={rolesFor('/requisitions')} />}>
             <Route path="/requisitions" element={<RequisitionListPage />} />
             <Route path="/requisitions/new" element={<RequisitionFormPage />} />
@@ -36,103 +57,51 @@ const App: React.FC = () => (
             <Route path="/requisitions/:id/edit" element={<RequisitionFormPage />} />
           </Route>
 
+          {/* Approvals */}
           <Route element={<RoleGuard allow={rolesFor('/approvals')} />}>
             <Route path="/approvals" element={<ApprovalQueuePage />} />
             <Route path="/approvals/pr/:id" element={<RequisitionReviewPage />} />
             <Route path="/approvals/po/:id" element={<OrderReviewPage />} />
           </Route>
 
+          {/* RFQs */}
           <Route element={<RoleGuard allow={rolesFor('/rfqs')} />}>
-            <Route
-              path="/rfqs"
-              element={
-                <ResourceListPage
-                  title="Requests for Quotation"
-                  endpoint="/rfqs/"
-                  emptyMessage="No RFQs have been created."
-                  actions={[
-                    { label: 'Send', path: (row) => `/rfqs/${row.id}/send/` },
-                    { label: 'Close', path: (row) => `/rfqs/${row.id}/close/` },
-                  ]}
-                />
-              }
-            />
+            <Route path="/rfqs" element={<RFQListPage />} />
+            <Route path="/rfqs/new" element={<RFQFormPage />} />
+            <Route path="/rfqs/:id" element={<RFQDetailPage />} />
           </Route>
 
+          {/* Bids */}
           <Route element={<RoleGuard allow={rolesFor('/bids')} />}>
-            <Route
-              path="/bids"
-              element={
-                <ResourceListPage
-                  title="Bids"
-                  endpoint="/bids/"
-                  emptyMessage="No bids have been received."
-                  actions={[
-                    { label: 'Select winner', path: (row) => `/bids/${row.id}/select_winner/` },
-                  ]}
-                />
-              }
-            />
+            <Route path="/bids" element={<BidListPage />} />
           </Route>
 
+          {/* Purchase Orders */}
           <Route element={<RoleGuard allow={rolesFor('/purchase-orders')} />}>
-            <Route
-              path="/purchase-orders"
-              element={
-                <ResourceListPage
-                  title="Purchase Orders"
-                  endpoint="/purchase-orders/"
-                  emptyMessage="No purchase orders have been created."
-                  actions={[
-                    {
-                      label: 'Submit for review',
-                      path: (row) => `/purchase-orders/${row.id}/submit-for-review/`,
-                    },
-                  ]}
-                />
-              }
-            />
+            <Route path="/purchase-orders" element={<PurchaseOrderListPage />} />
+            <Route path="/purchase-orders/:id" element={<PurchaseOrderDetailPage />} />
           </Route>
 
+          {/* Financial Review */}
           <Route element={<RoleGuard allow={rolesFor('/financial-review')} />}>
-            <Route
-              path="/financial-review"
-              element={
-                <ResourceListPage
-                  title="Financial Review"
-                  endpoint="/financial-reviews/"
-                  emptyMessage="No purchase orders are awaiting financial review."
-                />
-              }
-            />
+            <Route path="/financial-review" element={<FinancialReviewListPage />} />
+            <Route path="/financial-review/:id" element={<FinancialReviewDetailPage />} />
           </Route>
 
+          {/* Goods Receipts */}
           <Route element={<RoleGuard allow={rolesFor('/goods-receipts')} />}>
-            <Route
-              path="/goods-receipts"
-              element={
-                <ResourceListPage
-                  title="Goods Receipts"
-                  endpoint="/goods-receipts/"
-                  emptyMessage="No goods receipts have been recorded."
-                />
-              }
-            />
+            <Route path="/goods-receipts" element={<GoodsReceiptListPage />} />
+            <Route path="/goods-receipts/new" element={<GoodsReceiptFormPage />} />
           </Route>
 
+          {/* Suppliers */}
           <Route element={<RoleGuard allow={rolesFor('/suppliers')} />}>
-            <Route
-              path="/suppliers"
-              element={
-                <ResourceListPage
-                  title="Suppliers"
-                  endpoint="/suppliers/"
-                  emptyMessage="No suppliers have been registered."
-                />
-              }
-            />
+            <Route path="/suppliers" element={<SupplierListPage />} />
+            <Route path="/suppliers/new" element={<SupplierFormPage />} />
+            <Route path="/suppliers/:id/edit" element={<SupplierFormPage />} />
           </Route>
 
+          {/* Audit Log — read-only generic view is appropriate */}
           <Route element={<RoleGuard allow={rolesFor('/audit-log')} />}>
             <Route
               path="/audit-log"
@@ -147,28 +116,11 @@ const App: React.FC = () => (
             />
           </Route>
 
-          <Route
-            path="/notifications"
-            element={
-              <ResourceListPage
-                title="Notifications"
-                endpoint="/notifications/"
-                emptyMessage="You have no notifications."
-                readOnly
-              />
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <ResourceListPage
-                title="Settings"
-                endpoint="/notifications/"
-                emptyMessage="Nothing to configure yet."
-                readOnly
-              />
-            }
-          />
+          {/* Notifications — proper page */}
+          <Route path="/notifications" element={<NotificationsPage />} />
+
+          {/* Settings — proper page */}
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Route>
     </Routes>

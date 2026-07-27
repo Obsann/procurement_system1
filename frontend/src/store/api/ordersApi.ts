@@ -18,9 +18,24 @@ export const ordersApi = baseApi.injectEndpoints({
       }),
       providesTags: (_result, _error, id) => [{ type: 'Order', id }],
     }),
-    submitForReview: builder.mutation<PurchaseOrder, string>({
+    generateOrderFromBid: builder.mutation<PurchaseOrder, string>({
+      query: (bidId) => ({
+        url: '/purchase-orders/generate-from-bid/',
+        method: 'POST',
+        data: { bid_id: bidId },
+      }),
+      invalidatesTags: ['Order', 'Bid', 'RFQ'],
+    }),
+    submitForReview: builder.mutation<{ status: string; message: string }, string>({
       query: (id) => ({
         url: `/purchase-orders/${id}/submit-for-review/`,
+        method: 'POST',
+      }),
+      invalidatesTags: (_result, _error, id) => [{ type: 'Order', id }, 'Order'],
+    }),
+    submitForFinalApproval: builder.mutation<{ status: string; message: string }, string>({
+      query: (id) => ({
+        url: `/purchase-orders/${id}/submit-final/`,
         method: 'POST',
       }),
       invalidatesTags: (_result, _error, id) => [{ type: 'Order', id }, 'Order'],
@@ -31,5 +46,7 @@ export const ordersApi = baseApi.injectEndpoints({
 export const {
   useGetOrdersQuery,
   useGetOrderByIdQuery,
+  useGenerateOrderFromBidMutation,
   useSubmitForReviewMutation,
+  useSubmitForFinalApprovalMutation,
 } = ordersApi;

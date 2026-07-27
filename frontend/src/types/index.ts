@@ -139,51 +139,116 @@ export interface SupplierContact {
   phone: string;
 }
 
+/** Mirrors RFQ.STATUS_CHOICES. */
+export type RFQStatus = 'DRAFT' | 'SENT' | 'RESPONDED' | 'CLOSED';
+
+/** Mirrors RFQSerializer; decimals arrive as strings. */
 export interface RFQ {
   id: string;
-  rfqNumber: string;
-  prId: string;
-  status: string;
-  deadlineDate: string;
+  rfq_number: string;
+  purchase_requisition: string;
+  title: string;
+  description: string;
+  submission_deadline: string;
   instructions: string;
-  createdAt: string;
+  status: RFQStatus;
   lines: RFQLine[];
-  suppliers: RFQSupplier[];
+  invited_suppliers: RFQSupplier[];
+  created_at: string;
 }
 
 export interface RFQLine {
   id: string;
-  rfqId: string;
-  prLineId: string;
-  itemName: string;
-  quantity: number;
-  unit: string;
+  rfq: string;
+  pr_line: string | null;
+  item_name: string;
+  description: string;
+  quantity: string;
+  unit_of_measure: string;
+  sort_order: number;
 }
 
 export interface RFQSupplier {
   id: string;
-  rfqId: string;
-  supplierId: string;
-  status: string;
+  supplier: string;
+  supplier_name: string;
+  invited_at: string;
+  responded: boolean;
 }
 
+/** Payload for creating an RFQ; supplier_ids is write-only on the serializer. */
+export interface RFQInput {
+  purchase_requisition: string;
+  title: string;
+  description?: string;
+  submission_deadline: string;
+  instructions?: string;
+  supplier_ids: string[];
+  lines: {
+    item_name: string;
+    description?: string;
+    quantity: string;
+    unit_of_measure?: string;
+    pr_line?: string | null;
+  }[];
+}
+
+/** Mirrors BidSerializer. */
 export interface Bid {
   id: string;
-  rfqId: string;
-  supplierId: string;
-  status: string;
-  totalAmount: number;
-  submittedAt: string;
+  rfq: string;
+  supplier: string;
+  supplier_name: string;
+  bid_date: string;
+  expiry_date: string | null;
+  lead_time_days: number | null;
+  freight_cost: string;
+  insurance_cost: string;
+  tax_amount: string;
+  grand_total: string;
+  is_winner: boolean;
+  notes: string;
   lines: BidLine[];
+  attachments: BidAttachment[];
+  created_at: string;
 }
 
 export interface BidLine {
   id: string;
-  bidId: string;
-  rfqLineId: string;
-  unitPrice: number;
-  totalPrice: number;
-  remarks: string;
+  bid: string;
+  rfq_line: string | null;
+  quantity_offered: string;
+  unit_price: string;
+  total_price: string;
+  notes: string;
+}
+
+export interface BidAttachment {
+  id: string;
+  file: string;
+  file_name: string;
+  created_at: string;
+}
+
+/** Payload for recording a supplier quotation. */
+export interface BidInput {
+  rfq: string;
+  supplier: string;
+  bid_date: string;
+  expiry_date?: string | null;
+  lead_time_days?: number | null;
+  freight_cost: string;
+  insurance_cost: string;
+  tax_amount: string;
+  grand_total: string;
+  notes?: string;
+  lines: {
+    rfq_line: string;
+    quantity_offered: string;
+    unit_price: string;
+    total_price: string;
+    notes?: string;
+  }[];
 }
 
 /** Mirrors PurchaseOrder.STATUS_CHOICES. */

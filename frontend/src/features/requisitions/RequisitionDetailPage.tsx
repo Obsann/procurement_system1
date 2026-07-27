@@ -16,6 +16,7 @@ import {
 import { useGetApprovalsQuery } from '../../store/api/approvalsApi';
 import { formatDate, formatMoney, formatQuantity, toNumber } from '../../lib/format';
 import { apiErrorMessage } from '../../lib/apiError';
+import { isEditable } from './editability';
 
 export const RequisitionDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -79,7 +80,7 @@ export const RequisitionDetailPage: React.FC = () => {
             >
               Back
             </Button>
-            {pr.status === 'DRAFT' && (
+            {isEditable(pr.status) && (
               <>
                 <Button
                   variant="secondary"

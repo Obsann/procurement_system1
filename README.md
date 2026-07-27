@@ -64,6 +64,34 @@ The `seed_data` script populates the database with Amharic-named users with diff
 | `selamawit@demo.com` | Selamawit Alemu | Warehouse Officer |
 | `yared@demo.com` | Yared Assefa | System Administrator |
 
+## Deployment
+
+### Backend → Render
+
+1. Go to [render.com](https://render.com) → **New** → **Blueprint**
+2. Connect your GitHub repo and select the `render.yaml` file at the root
+3. Render will automatically create the web service + free PostgreSQL database
+4. Once deployed, set these **additional** environment variables in the Render dashboard:
+   - `DJANGO_ALLOWED_HOSTS` → your Render URL (e.g. `procuresync-api.onrender.com`)
+   - `DJANGO_CORS_ALLOWED_ORIGINS` → your Vercel URL (e.g. `https://procuresync.vercel.app`)
+5. After first deploy, run the seed command via Render's **Shell** tab:
+   ```bash
+   python manage.py seed_data --settings=config.settings.production
+   ```
+
+### Frontend → Vercel
+
+1. Go to [vercel.com](https://vercel.com) → **Add New Project** → Import your GitHub repo
+2. Set **Root Directory** to `frontend`
+3. Set **Build Command** to `npm run build` and **Output Directory** to `dist`
+4. Add this **Environment Variable** in Vercel's settings:
+   - `VITE_API_BASE_URL` → `https://<your-render-service-name>.onrender.com/api`
+5. Click **Deploy**
+
+The `frontend/vercel.json` is already configured to handle React Router's client-side routing.
+
+---
+
 ## Branching Strategy
 
 We follow a feature-branch workflow:

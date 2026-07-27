@@ -1,4 +1,4 @@
-# Procurement Management Platform
+# ProcureSync - Procurement Management Platform
 
 A robust, enterprise-grade Procurement Management Platform built with modern web technologies.
 
@@ -6,52 +6,67 @@ A robust, enterprise-grade Procurement Management Platform built with modern web
 
 *   **Backend:** Django 5, Django REST Framework
 *   **Frontend:** React 19, Vite, Tailwind CSS
-*   **Database:** PostgreSQL 16
+*   **Database:** PostgreSQL 16 (SQLite for local dev)
 *   **Caching/Queue:** Redis 7
 *   **Object Storage:** MinIO
 *   **Infrastructure:** Docker, Docker Compose, Nginx
 
-## Prerequisites
+## Local Development Setup
 
-*   [Docker](https://docs.docker.com/get-docker/)
-*   [Docker Compose](https://docs.docker.com/compose/install/)
-*   [Git](https://git-scm.com/downloads)
+To run the application locally without Docker:
 
-## Quick Start
+### Backend Setup
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
+2. Activate your virtual environment and install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Run migrations and seed the database with demo users and realistic data:
+   ```bash
+   python manage.py migrate --settings=config.settings.development
+   python manage.py seed_data --settings=config.settings.development
+   ```
+4. Start the development server:
+   ```bash
+   python manage.py runserver --settings=config.settings.development
+   ```
+   The backend API will run on `http://127.0.0.1:8000/`.
 
-1.  Clone the repository:
-    ```bash
-    git clone <repository-url>
-    cd procurement_system
-    ```
+### Frontend Setup
+1. Navigate to the frontend directory:
+   ```bash
+   cd frontend
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the Vite dev server:
+   ```bash
+   npm run dev
+   ```
+   The frontend will run on `http://localhost:5173`.
 
-2.  Copy the example environment variables file and update it if necessary:
-    ```bash
-    cp .env.example .env
-    ```
+## Demo Users
 
-3.  Start the application using Docker Compose:
-    ```bash
-    docker-compose up -d
-    ```
+The `seed_data` script populates the database with Amharic-named users with different roles for testing. 
+**The password for all accounts is `demo1234`.**
 
-4.  The application will be accessible at:
-    *   Frontend: `http://localhost:5173`
-    *   Backend API: `http://localhost:8000/api`
-    *   MinIO Console: `http://localhost:9001`
-
-## Development Setup
-
-For local development with hot-reloading:
-
-```bash
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-```
+| Email | Name | Role |
+| :--- | :--- | :--- |
+| `abebe@demo.com` | Abebe Kebede | Requester |
+| `almaz@demo.com` | Almaz Tesfaye | Budget Holder |
+| `chaltu@demo.com` | Chaltu Tadesse | Procurement Officer |
+| `dawit@demo.com` | Dawit Bekele | Financial Reviewer |
+| `selamawit@demo.com` | Selamawit Alemu | Warehouse Officer |
+| `yared@demo.com` | Yared Assefa | System Administrator |
 
 ## Branching Strategy
 
 We follow a feature-branch workflow:
-
 *   `main`: Production-ready code.
 *   `develop`: Integration branch for features.
 *   `feature/*`: New features (e.g., `feature/user-auth`). Branch off from `develop` and merge back into `develop` via Pull Request.
@@ -63,15 +78,7 @@ We follow a feature-branch workflow:
 *   `frontend/`: React application.
 *   `nginx/`: Nginx reverse proxy configuration.
 
-## API Documentation
-
-[Link to API Documentation (Swagger/ReDoc) - Placeholder]
-
 ## Team
 
 *   Obsan
 *   Mary
-
-## License
-
-[License Information - Placeholder]

@@ -66,15 +66,36 @@ The `seed_data` script populates the database with Amharic-named users with diff
 
 ## Deployment
 
-### Backend → Render
+### Backend → Render (No Credit Card Required)
 
-1. Go to [render.com](https://render.com) → **New** → **Blueprint**
-2. Connect your GitHub repo and select the `render.yaml` file at the root
-3. Render will automatically create the web service + free PostgreSQL database
-4. Once deployed, set these **additional** environment variables in the Render dashboard:
-   - `DJANGO_ALLOWED_HOSTS` → your Render URL (e.g. `procuresync-api.onrender.com`)
-   - `DJANGO_CORS_ALLOWED_ORIGINS` → your Vercel URL (e.g. `https://procuresync.vercel.app`)
-5. After first deploy, run the seed command via Render's **Shell** tab:
+Since Render requires a credit card to use Blueprints, you can bypass that by deploying manually on their free tier:
+
+1. **Create the Database:**
+   - Go to [render.com](https://render.com) → **New** → **PostgreSQL**
+   - Name it `procuresync-db` and select the **Free** instance type. Click Create.
+   - Once created, copy the **Internal Database URL**.
+2. **Create the Web Service:**
+   - Go back to Dashboard → **New** → **Web Service**
+   - Connect your GitHub repo.
+   - Set **Root Directory** to `backend`
+   - Set **Build Command** to: `pip install -r requirements.txt && python manage.py collectstatic --noinput --settings=config.settings.production && python manage.py migrate --settings=config.settings.production`
+   - Set **Start Command** to: `gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120`
+   - Select the **Free** instance type.
+3. **Add Environment Variables:**
+   - In the Advanced section (or Environment tab), add:
+     - `DJANGO_SETTINGS_MODULE` = `config.settings.production`
+     - `DJANGO_SECRET_KEY` = (generate any long random string)
+     - `POSTGRES_DB` = (from your Render database)
+     - `POSTGRES_USER` = (from your Render database)
+     - `POSTGRES_PASSWORD` = (from your Render database)
+     - `POSTGRES_HOST` = (from your Render database, the internal host)
+     - `POSTGRES_PORT` = `5432`
+     - `DJANGO_ALLOWED_HOSTS` = your Render URL (e.g. `procuresync-api.onrender.com`)
+     - `DJANGO_CORS_ALLOWED_ORIGINS` = your Vercel URL (e.g. `https://procuresync.vercel.app`)
+     - `DJANGO_SECURE_COOKIES` = `True`
+     - `USE_S3` = `False`
+4. Click **Create Web Service**.
+5. After it deploys, go to the **Shell** tab and run:
    ```bash
    python manage.py seed_data --settings=config.settings.production
    ```

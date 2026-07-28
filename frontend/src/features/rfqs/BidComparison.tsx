@@ -209,7 +209,7 @@ export const BidComparison: React.FC<BidComparisonProps> = ({ rfq, bids }) => {
             <Button variant="secondary" onClick={() => setPendingAward(null)}>
               Cancel
             </Button>
-            <Button onClick={confirmAward} loading={isLoading}>
+            <Button onClick={confirmAward} isLoading={isLoading}>
               Confirm
             </Button>
           </>

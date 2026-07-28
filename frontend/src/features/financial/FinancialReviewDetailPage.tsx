@@ -12,7 +12,7 @@ import {
 } from '../../components/ui';
 import { useGetOrderByIdQuery } from '../../store/api/ordersApi';
 import { useSubmitFinancialReviewMutation } from '../../store/api/financialReviewsApi';
-import { formatMoney, formatQuantity, toNumber } from '../../lib/format';
+import { formatMoney, formatQuantity } from '../../lib/format';
 import { apiErrorMessage } from '../../lib/apiError';
 
 export const FinancialReviewDetailPage: React.FC = () => {

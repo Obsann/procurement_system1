@@ -99,7 +99,7 @@ export const RFQDetailPage: React.FC = () => {
             {rfq.status === 'DRAFT' ? (
               <Button
                 icon={<Send className="h-4 w-4" />}
-                loading={isSending}
+                isLoading={isSending}
                 onClick={() =>
                   run(
                     () => sendRFQ(rfq.id).unwrap(),
@@ -114,7 +114,7 @@ export const RFQDetailPage: React.FC = () => {
             {rfq.status === 'RESPONDED' ? (
               <Button
                 variant="secondary"
-                loading={isClosing}
+                isLoading={isClosing}
                 onClick={() =>
                   run(
                     () => closeRFQ(rfq.id).unwrap(),
@@ -138,7 +138,7 @@ export const RFQDetailPage: React.FC = () => {
             {winner ? (
               <Button
                 icon={<FileCheck className="h-4 w-4" />}
-                loading={isGenerating}
+                isLoading={isGenerating}
                 onClick={onGenerateOrder}
               >
                 Generate purchase order

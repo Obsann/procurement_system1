@@ -342,12 +342,13 @@ export interface AuditLog {
 
 export interface Notification {
   id: string;
-  userId: string;
+  recipient: string;
   title: string;
   message: string;
-  isRead: boolean;
-  createdAt: string;
-  link?: string;
+  entity_type?: string;
+  entity_id?: string;
+  is_read: boolean;
+  created_at: string;
 }
 
 export interface ApiResponse<T> {

@@ -4,8 +4,19 @@ DEBUG = False
 
 if not SECRET_KEY or SECRET_KEY.startswith('django-insecure-'):
     raise RuntimeError('Set a strong DJANGO_SECRET_KEY before running production settings.')
+
+# Render injects RENDER_EXTERNAL_HOSTNAME automatically — add it so Django
+# doesn't reject incoming requests with a 400 Bad Request.
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+# Also honour any manually configured hosts (e.g. a custom domain).
+# DJANGO_ALLOWED_HOSTS is already parsed in base.py; we just ensure at least
+# one host is set so the validation below passes.
 if not ALLOWED_HOSTS:
-    raise RuntimeError('Set DJANGO_ALLOWED_HOSTS before running production settings.')
+    raise RuntimeError('No ALLOWED_HOSTS configured. Set RENDER_EXTERNAL_HOSTNAME or DJANGO_ALLOWED_HOSTS.')
+
 
 # --- Security ---
 CORS_ALLOW_CREDENTIALS = True

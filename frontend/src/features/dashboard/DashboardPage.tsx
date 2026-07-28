@@ -21,7 +21,7 @@ export const DashboardPage: React.FC = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold tracking-tight text-text-primary">
-            Welcome back, {displayName(user)} 👋
+            Welcome back, {displayName(user)}
           </h2>
         </div>
         <Card className="border-border-default">
@@ -38,7 +38,7 @@ export const DashboardPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold tracking-tight text-text-primary">
-          Welcome back, {displayName(user)} 👋
+          Welcome back, {displayName(user)}
         </h2>
       </div>
 

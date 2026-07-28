@@ -4,10 +4,11 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from drf_spectacular.utils import extend_schema
 from .models import User, Role
-from .serializers import UserSerializer, RoleSerializer, RegisterSerializer
+from .serializers import UserSerializer, RoleSerializer, RegisterSerializer, CustomTokenObtainPairSerializer
+
 
 class LoginView(TokenObtainPairView):
-    pass
+    serializer_class = CustomTokenObtainPairSerializer
 
 class ProfileView(APIView):
     permission_classes = [permissions.IsAuthenticated]

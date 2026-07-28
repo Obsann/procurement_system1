@@ -15,7 +15,7 @@ import {
   useSubmitForFinalApprovalMutation,
 } from '../../store/api/ordersApi';
 import { useGetApprovalsQuery } from '../../store/api/approvalsApi';
-import { formatDate, formatMoney, formatQuantity, toNumber } from '../../lib/format';
+import { formatMoney, formatQuantity } from '../../lib/format';
 import { apiErrorMessage } from '../../lib/apiError';
 
 export const PurchaseOrderDetailPage: React.FC = () => {

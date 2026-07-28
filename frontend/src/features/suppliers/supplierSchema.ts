@@ -8,9 +8,9 @@ export const supplierSchema = z.object({
   phone: z.string().min(1, 'Phone number is required'),
   address: z.string().optional(),
   city: z.string().optional(),
-  country: z.string().default('Ethiopia'),
+  country: z.string().optional(),
   tax_id: z.string().optional(),
-  status: z.enum(['ACTIVE', 'INACTIVE', 'BLOCKED']).default('ACTIVE'),
+  status: z.enum(['ACTIVE', 'INACTIVE', 'BLOCKED']).optional(),
   categories: z.string().optional(),
   notes: z.string().optional(),
 });

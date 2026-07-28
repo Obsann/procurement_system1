@@ -213,7 +213,7 @@ export const BidFormDrawer: React.FC<BidFormDrawerProps> = ({
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={save} loading={isLoading} disabled={availableSuppliers.length === 0}>
+          <Button onClick={save} isLoading={isLoading} disabled={availableSuppliers.length === 0}>
             Save quotation
           </Button>
         </div>

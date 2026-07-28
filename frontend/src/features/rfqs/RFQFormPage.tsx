@@ -270,7 +270,7 @@ export const RFQFormPage: React.FC = () => {
         <Button type="button" variant="secondary" onClick={() => navigate('/rfqs')}>
           Cancel
         </Button>
-        <Button type="submit" loading={isCreating}>
+        <Button type="submit" isLoading={isCreating}>
           Create RFQ
         </Button>
       </div>

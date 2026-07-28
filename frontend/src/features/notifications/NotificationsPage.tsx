@@ -13,7 +13,7 @@ import { apiErrorMessage } from '../../lib/apiError';
 
 export const NotificationsPage: React.FC = () => {
   const [page, setPage] = useState(1);
-  const { data, isLoading, refetch } = useGetNotificationsQuery({ page });
+  const { data, isLoading } = useGetNotificationsQuery({ page });
   const [markRead] = useMarkReadMutation();
   const [markAllRead, { isLoading: isMarkingAll }] = useMarkAllReadMutation();
   const navigate = useNavigate();

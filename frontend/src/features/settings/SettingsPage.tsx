@@ -31,7 +31,7 @@ export const SettingsPage: React.FC = () => {
             </div>
             <div>
               <label className="text-sm font-medium text-text-secondary">Department</label>
-              <div className="mt-1 text-text-primary">{user?.department?.name || 'N/A'}</div>
+              <div className="mt-1 text-text-primary">{user?.department_name || user?.department || 'N/A'}</div>
             </div>
             <div>
               <label className="text-sm font-medium text-text-secondary">Roles</label>
